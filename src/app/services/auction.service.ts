@@ -2,40 +2,40 @@ import { Injectable, signal, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { WebsocketService } from './websocket.service';
-import { 
-  AuctionState, 
-  AuctionStateUpdate, 
-  TimerUpdate, 
+import {
+  AuctionState,
+  AuctionStateUpdate,
+  TimerUpdate,
   BidDto,
   BidPlacedEvent,
   PlayerSoldEvent,
   AuctionStartedEvent,
   AuctionEndedEvent,
-  AuctionErrorEvent
+  AuctionErrorEvent,
 } from '../models/auction.model';
 import { Player } from '../models/player.model';
 import { Team } from '../models/team.model';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class AuctionService {
-  private apiUrl = 'http://localhost:3000/auction';
+  private apiUrl = 'http://localhost:3001/auction';
   private ws = inject(WebsocketService);
   private http = inject(HttpClient);
-  
+
   // Auction state signals
   auctionState = signal<AuctionState | null>(null);
   currentPlayer = signal<Player | null>(null);
   highestBidTeam = signal<Team | null>(null);
   timer = signal<number>(0);
   isRunning = signal<boolean>(false);
-  
+
   // Event signals
   lastBid = signal<BidPlacedEvent | null>(null);
   lastSale = signal<PlayerSoldEvent | null>(null);
   lastError = signal<string | null>(null);
-  
+
   // Loading state
   loading = signal<boolean>(false);
 
@@ -72,18 +72,26 @@ export class AuctionService {
     // Bid placed
     this.ws.on<BidPlacedEvent>('bidPlaced', (data) => {
       this.lastBid.set(data);
-      console.log(`Bid placed: ${data.teamName} bid ${data.bidAmount} for player ${data.playerId}`);
+      console.log(
+        `Bid placed: ${data.teamName} bid ${data.bidAmount} for player ${data.playerId}`
+      );
     });
 
     // Player sold
     this.ws.on<PlayerSoldEvent>('playerSold', (data) => {
       this.lastSale.set(data);
-      console.log(`Player sold: ${data.playerName} to ${data.teamName || 'No team'} for ${data.finalPrice}`);
+      console.log(
+        `Player sold: ${data.playerName} to ${data.teamName || 'No team'} for ${
+          data.finalPrice
+        }`
+      );
     });
 
     // Auction started
     this.ws.on<AuctionStartedEvent>('auctionStarted', (data) => {
-      console.log(`Auction started: ${data.playerName} at base price ${data.basePrice}`);
+      console.log(
+        `Auction started: ${data.playerName} at base price ${data.basePrice}`
+      );
     });
 
     // Auction ended

@@ -1,1 +1,115 @@
-<p>public-viewer works!</p>
+<div class="public-viewer-container">
+  <header class="header">
+    <h1>🏆 Live Auction</h1>
+    <div class="connection-status">
+      @if (wsService.connected()) {
+        <span class="status-badge connected">● LIVE</span>
+      } @else {
+        <span class="status-badge disconnected">● OFFLINE</span>
+      }
+    </div>
+  </header>
+
+  <div class="main-content">
+    <!-- Left Column: Current Auction -->
+    <div class="auction-column">
+      <!-- Current Player Card -->
+      <section class="player-card">
+        <h2>Current Player</h2>
+        @if (currentPlayer()) {
+          <div class="player-content">
+            <div class="player-header">
+              <h3>{{ currentPlayer()!.name }}</h3>
+              <span class="player-position">{{ currentPlayer()!.position }}</span>
+            </div>
+            <div class="player-details">
+              <div class="detail-item">
+                <span class="label">Base Price:</span>
+                <span class="value">${{ currentPlayer()!.basePrice }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="label">Status:</span>
+                <span class="value status">{{ currentPlayer()!.status }}</span>
+              </div>
+            </div>
+          </div>
+        } @else {
+          <div class="no-player">
+            <p>No player currently being auctioned</p>
+            <p class="subtitle">Waiting for auction to start...</p>
+          </div>
+        }
+      </section>
+
+      <!-- Bidding Information -->
+      <section class="bidding-card">
+        <h2>Current Bidding</h2>
+        <div class="bid-info">
+          <div class="highest-bid">
+            <span class="label">Highest Bid</span>
+            <span class="amount">${{ highestBid() }}</span>
+          </div>
+          <div class="highest-bidder">
+            <span class="label">Leading Team</span>
+            <span class="team-name">{{ highestBidder() }}</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Timer -->
+      <section class="timer-card">
+        <h2>Time Remaining</h2>
+        <div class="timer-display" [class.urgent]="timer() <= 5 && timer() > 0">
+          <span class="timer-value">{{ timer() }}</span>
+          <span class="timer-unit">seconds</span>
+        </div>
+        @if (!isRunning()) {
+          <p class="timer-status">Auction Paused</p>
+        }
+      </section>
+
+      <!-- Recent Activity -->
+      <section class="activity-card">
+        <h2>Recent Activity</h2>
+        <div class="activity-list">
+          @if (recentActivity().length > 0) {
+            @for (activity of recentActivity(); track activity) {
+              <div class="activity-item">{{ activity }}</div>
+            }
+          } @else {
+            <p class="no-activity">No activity yet</p>
+          }
+        </div>
+      </section>
+    </div>
+
+    <!-- Right Column: Teams Summary -->
+    <div class="teams-column">
+      <section class="teams-card">
+        <h2>Teams Overview</h2>
+        <div class="teams-list">
+          @if (teams().length > 0) {
+            @for (team of teams(); track team._id) {
+              <div class="team-item">
+                <div class="team-header">
+                  <h3>{{ team.name }}</h3>
+                  <span class="player-count">{{ getPlayerCount(team) }} players</span>
+                </div>
+                <div class="team-stats">
+                  <div class="stat">
+                    <span class="stat-label">Budget Left:</span>
+                    <span class="stat-value budget">${{ team.budget }}</span>
+                  </div>
+                </div>
+              </div>
+            }
+          } @else {
+            <div class="no-teams">
+              <p>No teams available</p>
+            </div>
+          }
+        </div>
+      </section>
+    </div>
+  </div>
+</div>

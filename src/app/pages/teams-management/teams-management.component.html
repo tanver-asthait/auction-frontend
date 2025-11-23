@@ -1,0 +1,151 @@
+<div class="teams-management-container">
+  <header class="page-header">
+    <h1>🏅 Teams Management</h1>
+    <button class="btn btn-primary" (click)="showCreateForm()">
+      ➕ Create New Team
+    </button>
+  </header>
+
+  <!-- Success/Error Messages -->
+  @if (successMessage()) {
+    <div class="alert alert-success">
+      ✅ {{ successMessage() }}
+    </div>
+  }
+
+  @if (errorMessage()) {
+    <div class="alert alert-error">
+      ❌ {{ errorMessage() }}
+    </div>
+  }
+
+  <!-- Create/Edit Form -->
+  @if (isCreating() || editingTeamId()) {
+    <div class="form-card">
+      <h2>{{ isCreating() ? 'Create New Team' : 'Edit Team' }}</h2>
+
+      <form (ngSubmit)="isCreating() ? createTeam() : updateTeam()">
+        <div class="form-group">
+          <label for="teamName">Team Name *</label>
+          <input
+            type="text"
+            id="teamName"
+            [(ngModel)]="formData().name"
+            name="name"
+            placeholder="Enter team name"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="budget">Initial Budget ($) *</label>
+          <input
+            type="number"
+            id="budget"
+            [(ngModel)]="formData().budget"
+            name="budget"
+            min="0"
+            step="1000"
+            placeholder="100000"
+            required
+          />
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">
+            {{ isCreating() ? '✅ Create Team' : '💾 Save Changes' }}
+          </button>
+          <button type="button" class="btn btn-secondary" (click)="cancelForm()">
+            ❌ Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+  }
+
+  <!-- Teams List -->
+  <div class="teams-list">
+    <h2>Teams ({{ teams().length }})</h2>
+
+    @if (teamsService.loading()) {
+      <div class="loading">Loading teams...</div>
+    }
+
+    @if (teams().length === 0 && !teamsService.loading()) {
+      <div class="empty-state">
+        <p>No teams created yet.</p>
+        <p>Click "Create New Team" to get started!</p>
+      </div>
+    }
+
+    @if (teams().length > 0) {
+      <div class="teams-grid">
+        @for (team of teams(); track team._id) {
+          <div class="team-card">
+            <!-- Delete Confirmation Overlay -->
+            @if (showDeleteConfirm() === team._id) {
+              <div class="delete-confirm-overlay">
+                <h3>⚠️ Confirm Delete</h3>
+                <p>Are you sure you want to delete <strong>{{ team.name }}</strong>?</p>
+                <p class="warning">This action cannot be undone!</p>
+                <div class="confirm-actions">
+                  <button class="btn btn-danger" (click)="deleteTeam(team._id)">
+                    🗑️ Yes, Delete
+                  </button>
+                  <button class="btn btn-secondary" (click)="cancelDelete()">
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            }
+
+            <!-- Team Card Content -->
+            <div class="team-header">
+              <h3>{{ team.name }}</h3>
+              <span class="player-badge">{{ getPlayerCount(team) }} players</span>
+            </div>
+
+            <div class="team-details">
+              <div class="detail-row">
+                <span class="label">Budget:</span>
+                <span class="value budget">${{ team.budget }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="label">Team ID:</span>
+                <span class="value id">{{ team._id }}</span>
+              </div>
+            </div>
+
+            <div class="team-url">
+              <label>Dashboard URL:</label>
+              <div class="url-display">
+                <input
+                  type="text"
+                  [value]="getTeamDashboardUrl(team._id)"
+                  readonly
+                  #urlInput
+                  (click)="urlInput.select()"
+                />
+                <button
+                  class="btn-icon"
+                  (click)="copyTeamUrl(team._id)"
+                  title="Copy URL">
+                  📋
+                </button>
+              </div>
+            </div>
+
+            <div class="team-actions">
+              <button class="btn btn-edit" (click)="showEditForm(team)">
+                ✏️ Edit
+              </button>
+              <button class="btn btn-delete" (click)="confirmDelete(team._id)">
+                🗑️ Delete
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+</div>

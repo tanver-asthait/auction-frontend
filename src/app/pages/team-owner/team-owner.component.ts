@@ -1,12 +1,251 @@
-import { Component } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  OnDestroy,
+  signal,
+  computed,
+  inject,
+} from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
+import { WebsocketService } from '../../services/websocket.service';
+import { TeamsService } from '../../services/teams.service';
+import { Subscription } from 'rxjs';
+import { Player } from '../../models/player.model';
+import { Team } from '../../models/team.model';
 
 @Component({
   selector: 'app-team-owner',
   standalone: true,
-  imports: [],
+  imports: [CommonModule, FormsModule],
   templateUrl: './team-owner.component.html',
-  styleUrl: './team-owner.component.scss'
+  styleUrl: './team-owner.component.scss',
 })
-export class TeamOwnerComponent {
+export class TeamOwnerComponent implements OnInit, OnDestroy {
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private teamsService = inject(TeamsService);
 
+  // Team information (loaded from route and API)
+  teamId = signal<string>('');
+  teamName = signal<string>('Loading...');
+  budget = signal<number>(0);
+  teamNotFound = signal<boolean>(false);
+
+  // Auction state signals
+  currentPlayer = signal<Player | null>(null);
+  highestBid = signal<number>(0);
+  highestBidder = signal<string>('None');
+  highestBidderTeamId = signal<string | null>(null);
+  timer = signal<number>(0);
+  isRunning = signal<boolean>(false);
+
+  // Computed signals
+  isHighestBidder = computed(() => {
+    return this.highestBidderTeamId() === this.teamId();
+  });
+
+  // Bid increment must be $1 to match backend validation
+  bidIncrement = computed(() => {
+    return 1; // Backend expects exactly +$1 increments
+  });
+
+  nextBidAmount = computed(() => {
+    return this.highestBid() + this.bidIncrement();
+  });
+
+  canBid = computed(() => {
+    return (
+      this.wsService.connected() &&
+      this.isRunning() &&
+      !this.isHighestBidder() &&
+      this.nextBidAmount() <= this.budget() &&
+      this.timer() > 0
+    );
+  });
+
+  remainingBudget = computed(() => {
+    return this.budget() - this.nextBidAmount();
+  });
+
+  // Subscriptions
+  private subscriptions: Subscription[] = [];
+
+  constructor(public wsService: WebsocketService) {}
+
+  ngOnInit(): void {
+    // Get team ID from route parameter
+    const teamIdFromRoute = this.route.snapshot.paramMap.get('teamId');
+
+    if (!teamIdFromRoute) {
+      console.error('No team ID provided in route');
+      this.teamNotFound.set(true);
+      return;
+    }
+
+    this.teamId.set(teamIdFromRoute);
+
+    // Load team data from API
+    this.loadTeamData(teamIdFromRoute);
+
+    // Connect to WebSocket
+    this.wsService.connect();
+
+    // Listen to auction state updates
+    const stateSub = this.wsService.listenToState().subscribe({
+      next: (state: any) => {
+        console.log('📡 Team Owner received state update:', state);
+
+        // Backend sends flat structure, not nested
+        // Handle both formats for compatibility
+        const isNested = !!state.auctionState;
+
+        if (isNested) {
+          // Nested format: { auctionState: {...}, currentPlayer, highestBidTeam }
+          this.currentPlayer.set(state.currentPlayer);
+          this.highestBid.set(state.auctionState?.highestBid || 0);
+          this.highestBidder.set(state.highestBidTeam?.name || 'None');
+          this.highestBidderTeamId.set(
+            state.auctionState?.highestBidTeamId || null
+          );
+          this.isRunning.set(state.auctionState?.isRunning || false);
+          this.timer.set(state.auctionState?.timer || 0);
+        } else {
+          // Flat format (what backend actually sends): { currentPlayer, highestBid, timer, isRunning, ... }
+          this.currentPlayer.set(state.currentPlayer);
+          this.highestBid.set(state.highestBid || 0);
+          this.highestBidder.set(state.highestBidTeam?.name || 'None');
+          this.highestBidderTeamId.set(state.highestBidTeamId || null);
+          this.isRunning.set(state.isRunning || false);
+          this.timer.set(state.timer || 0);
+        }
+
+        console.log('✅ Set isRunning to:', this.isRunning());
+        console.log('✅ Timer:', this.timer());
+        console.log('✅ canBid computed:', this.canBid());
+      },
+      error: (err) => {
+        console.error('State subscription error:', err);
+      },
+    });
+
+    // Listen to timer updates
+    const timerSub = this.wsService.listenToTimer().subscribe({
+      next: (timerUpdate) => {
+        this.timer.set(timerUpdate.timer);
+      },
+      error: (err) => {
+        console.error('Timer subscription error:', err);
+      },
+    });
+
+    // Listen to bid placed events
+    const bidSub = this.wsService.bidPlaced$.subscribe({
+      next: (bid) => {
+        console.log(`Bid placed: ${bid.teamName} - $${bid.bidAmount}`);
+
+        // If this team placed the bid, show feedback
+        if (bid.teamId === this.teamId()) {
+          console.log('✅ Your bid was placed successfully!');
+        }
+      },
+    });
+
+    // Listen to player sold events
+    const soldSub = this.wsService.playerSold$.subscribe({
+      next: (sold) => {
+        console.log(
+          `Player sold: ${sold.playerName} to ${
+            sold.teamName || 'No one'
+          } for $${sold.finalPrice}`
+        );
+
+        // If this team won the player, refresh team data from API
+        if (sold.teamId === this.teamId()) {
+          console.log(
+            `🎉 Congratulations! You won ${sold.playerName} for $${sold.finalPrice}`
+          );
+          // Refresh team data to get updated budget
+          this.refreshTeamData();
+        }
+      },
+    });
+
+    // Listen to auction errors
+    const errorSub = this.wsService.auctionError$.subscribe({
+      next: (error) => {
+        console.error('❌ Auction error:', error);
+        alert(`Error: ${error.message}`);
+      },
+    });
+
+    // Store subscriptions
+    this.subscriptions.push(stateSub, timerSub, bidSub, soldSub, errorSub);
+  }
+
+  ngOnDestroy(): void {
+    // Clean up subscriptions
+    this.subscriptions.forEach((sub) => sub.unsubscribe());
+  }
+
+  /**
+   * Load team data from API
+   */
+  private loadTeamData(teamId: string): void {
+    this.teamsService.getTeamById(teamId).subscribe({
+      next: (team: Team) => {
+        this.teamName.set(team.name);
+        this.budget.set(team.budget);
+        this.teamNotFound.set(false);
+        console.log(`Loaded team: ${team.name} with budget $${team.budget}`);
+      },
+      error: (err) => {
+        console.error('Failed to load team:', err);
+        this.teamNotFound.set(true);
+        this.teamName.set('Team Not Found');
+      },
+    });
+  }
+
+  /**
+   * Refresh team data (call after winning a player)
+   */
+  private refreshTeamData(): void {
+    const currentTeamId = this.teamId();
+    if (currentTeamId) {
+      this.teamsService.getTeamById(currentTeamId).subscribe({
+        next: (team: Team) => {
+          this.budget.set(team.budget);
+        },
+        error: (err) => {
+          console.error('Failed to refresh team:', err);
+        },
+      });
+    }
+  }
+
+  /**
+   * Place a bid for the current player
+   */
+  placeBid(): void {
+    if (!this.canBid()) {
+      console.warn('Cannot place bid at this time');
+      return;
+    }
+
+    const playerId = this.currentPlayer()?._id;
+    if (!playerId) {
+      console.error('No current player to bid on');
+      alert('❌ No player is currently being auctioned');
+      return;
+    }
+
+    const bidAmount = this.nextBidAmount();
+    console.log(
+      `Placing bid: Team ${this.teamId()}, Player ${playerId}, Amount $${bidAmount}`
+    );
+
+    this.wsService.sendBid(this.teamId(), playerId, bidAmount);
+  }
 }

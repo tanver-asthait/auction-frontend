@@ -1,1 +1,79 @@
-<p>admin works!</p>
+<div class="admin-container">
+  <h1>Admin Panel</h1>
+
+  <!-- Connection Status -->
+  <div class="connection-status">
+    <p>
+      <strong>Connection:</strong>
+      @if (wsService.connected()) {
+        <span style="color: green;">● Connected</span>
+      } @else {
+        <span style="color: red;">● Disconnected</span>
+      }
+    </p>
+    @if (wsService.error()) {
+      <p style="color: red;"><strong>Error:</strong> {{ wsService.error() }}</p>
+    }
+  </div>
+
+  <hr />
+
+  <!-- Auction Status -->
+  <div class="auction-status">
+    <h2>Auction Status</h2>
+    <p><strong>Running:</strong> {{ isRunning() ? 'Yes' : 'No' }}</p>
+    <p><strong>Timer:</strong> {{ timer() }} seconds</p>
+  </div>
+
+  <hr />
+
+  <!-- Current Player -->
+  <div class="current-player">
+    <h2>Current Player</h2>
+    @if (currentPlayer()) {
+      <div>
+        <p><strong>Name:</strong> {{ currentPlayer()!.name }}</p>
+        <p><strong>Position:</strong> {{ currentPlayer()!.position }}</p>
+        <p><strong>Base Price:</strong> ${{ currentPlayer()!.basePrice }}</p>
+        <p><strong>Status:</strong> {{ currentPlayer()!.status }}</p>
+      </div>
+    } @else {
+      <p>No player selected</p>
+    }
+  </div>
+
+  <hr />
+
+  <!-- Bidding Information -->
+  <div class="bidding-info">
+    <h2>Current Bidding</h2>
+    <p><strong>Highest Bid:</strong> ${{ highestBid() }}</p>
+    <p><strong>Highest Bidder:</strong> {{ highestBidder() }}</p>
+  </div>
+
+  <hr />
+
+  <!-- Admin Controls -->
+  <div class="admin-controls">
+    <h2>Controls</h2>
+    <div class="button-group">
+      <button
+        (click)="startAuction()"
+        [disabled]="!wsService.connected() || isRunning()">
+        Start Auction
+      </button>
+
+      <button
+        (click)="sellPlayer()"
+        [disabled]="!wsService.connected() || !isRunning()">
+        Sell Player
+      </button>
+
+      <button
+        (click)="nextPlayer()"
+        [disabled]="!wsService.connected()">
+        Next Player
+      </button>
+    </div>
+  </div>
+</div>

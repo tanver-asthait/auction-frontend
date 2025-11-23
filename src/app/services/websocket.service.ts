@@ -159,14 +159,18 @@ export class WebsocketService {
 
     console.log('Sending bid from team:', teamId);
 
-    // Backend expects 'placeBid' event with { teamId } for auto-increment
-    // or 'bid' event with full BidDto for explicit control
+    // Backend expects 'bid' event
     if (playerId && bidAmount) {
       // Full bid with explicit values
-      this.socket.emit('bid', { playerId, teamId, bidAmount });
+      const bidData = { playerId, teamId, bidAmount };
+      console.log('📤 Emitting "bid" event with data:', bidData);
+      this.socket.emit('bid', bidData);
     } else {
-      // Simplified bid - backend auto-increments
-      this.socket.emit('placeBid', { teamId });
+      // If no playerId/bidAmount provided, still send bid event with just teamId
+      // Backend should handle auto-increment
+      const bidData = { teamId };
+      console.log('📤 Emitting "bid" event with data:', bidData);
+      this.socket.emit('bid', bidData);
     }
   }
 

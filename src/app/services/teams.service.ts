@@ -4,11 +4,11 @@ import { Observable, tap } from 'rxjs';
 import { Team, CreateTeamDto, UpdateTeamDto } from '../models/team.model';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class TeamsService {
-  private apiUrl = 'http://localhost:3000/teams';
-  
+  private apiUrl = 'http://localhost:3001/teams';
+
   // Signals for reactive state
   teams = signal<Team[]>([]);
   currentTeam = signal<Team | null>(null);
@@ -30,7 +30,7 @@ export class TeamsService {
         error: (err) => {
           this.error.set(err.message);
           this.loading.set(false);
-        }
+        },
       })
     );
   }
@@ -48,7 +48,7 @@ export class TeamsService {
         error: (err) => {
           this.error.set(err.message);
           this.loading.set(false);
-        }
+        },
       })
     );
   }
@@ -59,14 +59,14 @@ export class TeamsService {
     return this.http.post<Team>(this.apiUrl, teamDto).pipe(
       tap({
         next: (team) => {
-          this.teams.update(teams => [...teams, team]);
+          this.teams.update((teams) => [...teams, team]);
           this.loading.set(false);
           this.error.set(null);
         },
         error: (err) => {
           this.error.set(err.message);
           this.loading.set(false);
-        }
+        },
       })
     );
   }
@@ -77,8 +77,8 @@ export class TeamsService {
     return this.http.put<Team>(`${this.apiUrl}/${id}`, teamDto).pipe(
       tap({
         next: (updatedTeam) => {
-          this.teams.update(teams => 
-            teams.map(t => t._id === id ? updatedTeam : t)
+          this.teams.update((teams) =>
+            teams.map((t) => (t._id === id ? updatedTeam : t))
           );
           if (this.currentTeam()?._id === id) {
             this.currentTeam.set(updatedTeam);
@@ -89,7 +89,7 @@ export class TeamsService {
         error: (err) => {
           this.error.set(err.message);
           this.loading.set(false);
-        }
+        },
       })
     );
   }
@@ -100,7 +100,7 @@ export class TeamsService {
     return this.http.delete<void>(`${this.apiUrl}/${id}`).pipe(
       tap({
         next: () => {
-          this.teams.update(teams => teams.filter(t => t._id !== id));
+          this.teams.update((teams) => teams.filter((t) => t._id !== id));
           if (this.currentTeam()?._id === id) {
             this.currentTeam.set(null);
           }
@@ -110,7 +110,7 @@ export class TeamsService {
         error: (err) => {
           this.error.set(err.message);
           this.loading.set(false);
-        }
+        },
       })
     );
   }

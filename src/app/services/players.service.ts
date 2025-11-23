@@ -1,14 +1,19 @@
 import { Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
-import { Player, CreatePlayerDto, UpdatePlayerDto, PlayerStatus } from '../models/player.model';
+import {
+  Player,
+  CreatePlayerDto,
+  UpdatePlayerDto,
+  PlayerStatus,
+} from '../models/player.model';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class PlayersService {
-  private apiUrl = 'http://localhost:3000/players';
-  
+  private apiUrl = 'http://localhost:3001/players';
+
   // Signals for reactive state
   players = signal<Player[]>([]);
   currentPlayer = signal<Player | null>(null);
@@ -30,7 +35,7 @@ export class PlayersService {
         error: (err) => {
           this.error.set(err.message);
           this.loading.set(false);
-        }
+        },
       })
     );
   }
@@ -48,7 +53,7 @@ export class PlayersService {
         error: (err) => {
           this.error.set(err.message);
           this.loading.set(false);
-        }
+        },
       })
     );
   }
@@ -65,7 +70,7 @@ export class PlayersService {
         error: (err) => {
           this.error.set(err.message);
           this.loading.set(false);
-        }
+        },
       })
     );
   }
@@ -76,14 +81,14 @@ export class PlayersService {
     return this.http.post<Player>(this.apiUrl, playerDto).pipe(
       tap({
         next: (player) => {
-          this.players.update(players => [...players, player]);
+          this.players.update((players) => [...players, player]);
           this.loading.set(false);
           this.error.set(null);
         },
         error: (err) => {
           this.error.set(err.message);
           this.loading.set(false);
-        }
+        },
       })
     );
   }
@@ -94,8 +99,8 @@ export class PlayersService {
     return this.http.put<Player>(`${this.apiUrl}/${id}`, playerDto).pipe(
       tap({
         next: (updatedPlayer) => {
-          this.players.update(players => 
-            players.map(p => p._id === id ? updatedPlayer : p)
+          this.players.update((players) =>
+            players.map((p) => (p._id === id ? updatedPlayer : p))
           );
           this.loading.set(false);
           this.error.set(null);
@@ -103,7 +108,7 @@ export class PlayersService {
         error: (err) => {
           this.error.set(err.message);
           this.loading.set(false);
-        }
+        },
       })
     );
   }
@@ -114,14 +119,14 @@ export class PlayersService {
     return this.http.delete<void>(`${this.apiUrl}/${id}`).pipe(
       tap({
         next: () => {
-          this.players.update(players => players.filter(p => p._id !== id));
+          this.players.update((players) => players.filter((p) => p._id !== id));
           this.loading.set(false);
           this.error.set(null);
         },
         error: (err) => {
           this.error.set(err.message);
           this.loading.set(false);
-        }
+        },
       })
     );
   }
