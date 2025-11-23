@@ -199,6 +199,7 @@ export class WebsocketService {
 
   /**
    * Move to the next player (admin only)
+   * Backend will automatically select the next unsold player
    */
   nextPlayer(): void {
     if (!this.socket?.connected) {
@@ -207,22 +208,28 @@ export class WebsocketService {
       return;
     }
 
-    console.log('Moving to next player...');
+    console.log(
+      '📤 Requesting next player (backend will auto-select next unsold player)...'
+    );
     this.socket.emit('nextPlayer', {});
   }
 
   /**
    * Sell the current player to the highest bidder (admin only)
+   * @param playerId - ID of the player to sell (optional, backend will use current player if not provided)
    */
-  sellPlayer(): void {
+  sellPlayer(playerId?: string): void {
     if (!this.socket?.connected) {
       console.error('Cannot sell player: WebSocket not connected');
       this.error.set('WebSocket not connected');
       return;
     }
 
-    console.log('Selling current player...');
-    this.socket.emit('sellPlayer', {});
+    console.log(
+      'Selling current player...',
+      playerId ? `ID: ${playerId}` : '(using current)'
+    );
+    this.socket.emit('sellPlayer', playerId ? { playerId } : {});
   }
 
   disconnect(): void {

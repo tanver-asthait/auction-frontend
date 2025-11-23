@@ -53,6 +53,14 @@
 
   <hr />
 
+  <!-- Last Sold Player Info -->
+  @if (lastSoldInfo()) {
+    <div class="last-sold-info" style="background-color: #e8f5e9; padding: 1rem; border-radius: 4px; margin-bottom: 1rem;">
+      <h3 style="margin-top: 0; color: #2e7d32;">Last Transaction</h3>
+      <p style="font-size: 1.1rem; margin: 0;">{{ lastSoldInfo() }}</p>
+    </div>
+  }
+
   <!-- Admin Controls -->
   <div class="admin-controls">
     <h2>Controls</h2>

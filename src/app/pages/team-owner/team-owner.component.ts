@@ -40,6 +40,7 @@ export class TeamOwnerComponent implements OnInit, OnDestroy {
   highestBidderTeamId = signal<string | null>(null);
   timer = signal<number>(0);
   isRunning = signal<boolean>(false);
+  lastSoldInfo = signal<string>(''); // Track last sold player info
 
   // Computed signals
   isHighestBidder = computed(() => {
@@ -161,14 +162,28 @@ export class TeamOwnerComponent implements OnInit, OnDestroy {
           } for $${sold.finalPrice}`
         );
 
-        // If this team won the player, refresh team data from API
+        // Update UI with sold information
         if (sold.teamId === this.teamId()) {
-          console.log(
-            `🎉 Congratulations! You won ${sold.playerName} for $${sold.finalPrice}`
-          );
+          // This team won the player
+          const message = `🎉 Congratulations! You won ${sold.playerName} for $${sold.finalPrice}`;
+          this.lastSoldInfo.set(message);
+          alert(message);
           // Refresh team data to get updated budget
           this.refreshTeamData();
+        } else if (sold.teamName) {
+          // Another team won
+          const message = `${sold.playerName} sold to ${sold.teamName} for $${sold.finalPrice}`;
+          this.lastSoldInfo.set(message);
+        } else {
+          // No one won (unsold)
+          const message = `${sold.playerName} went unsold (No bids)`;
+          this.lastSoldInfo.set(message);
         }
+
+        // Clear the sold info after 10 seconds
+        setTimeout(() => {
+          this.lastSoldInfo.set('');
+        }, 10000);
       },
     });
 

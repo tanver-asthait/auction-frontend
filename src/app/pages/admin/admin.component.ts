@@ -21,6 +21,7 @@ export class AdminComponent implements OnInit, OnDestroy {
   highestBidder = signal<string>('None');
   timer = signal<number>(0);
   isRunning = signal<boolean>(false);
+  lastSoldInfo = signal<string>(''); // Track last sold player info
 
   // Subscriptions
   private subscriptions: Subscription[] = [];
@@ -83,6 +84,22 @@ export class AdminComponent implements OnInit, OnDestroy {
             sold.teamName || 'No one'
           } for $${sold.finalPrice}`
         );
+
+        // Update UI with sold information
+        if (sold.teamName) {
+          const message = `✅ ${sold.playerName} SOLD to ${sold.teamName} for $${sold.finalPrice}`;
+          this.lastSoldInfo.set(message);
+          alert(message);
+        } else {
+          const message = `❌ ${sold.playerName} UNSOLD (No bids)`;
+          this.lastSoldInfo.set(message);
+          alert(message);
+        }
+
+        // Clear the sold info after 10 seconds
+        setTimeout(() => {
+          this.lastSoldInfo.set('');
+        }, 10000);
       },
     });
 
@@ -172,6 +189,12 @@ export class AdminComponent implements OnInit, OnDestroy {
    * Sell current player
    */
   sellPlayer(): void {
-    this.wsService.sellPlayer();
+    const currentPlayerId = this.currentPlayer()?._id;
+    if (!currentPlayerId) {
+      alert('❌ No player currently in auction!');
+      return;
+    }
+    console.log('🔨 Selling player:', currentPlayerId);
+    this.wsService.sellPlayer(currentPlayerId);
   }
 }
