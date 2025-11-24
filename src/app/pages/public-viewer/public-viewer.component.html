@@ -19,7 +19,16 @@
         @if (currentPlayer()) {
           <div class="player-content">
             <div class="player-header">
-              <h3>{{ currentPlayer()!.name }}</h3>
+              <div class="player-info">
+                @if (currentPlayer()!.image) {
+                  <img [src]="currentPlayer()!.image" [alt]="currentPlayer()!.name" class="player-image" />
+                } @else {
+                  <div class="player-placeholder">
+                    {{ currentPlayer()!.name.charAt(0).toUpperCase() }}
+                  </div>
+                }
+                <h3>{{ currentPlayer()!.name }}</h3>
+              </div>
               <span class="player-position">{{ currentPlayer()!.position }}</span>
             </div>
             <div class="player-details">

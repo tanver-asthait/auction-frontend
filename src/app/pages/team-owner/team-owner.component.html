@@ -67,8 +67,14 @@
           </div>
           @if (currentPlayer()) {
             <div class="player-info">
-              <div class="player-image" *ngIf="currentPlayer()?.image">
-                <img [src]="currentPlayer()!.image" [alt]="currentPlayer()!.name" />
+              <div class="player-image">
+                @if (currentPlayer()?.image) {
+                  <img [src]="currentPlayer()!.image" [alt]="currentPlayer()!.name" />
+                } @else {
+                  <div class="player-placeholder">
+                    <span class="placeholder-icon">👤</span>
+                  </div>
+                }
               </div>
               <div class="player-details">
                 <h4 class="player-name">{{ currentPlayer()!.name }}</h4>
