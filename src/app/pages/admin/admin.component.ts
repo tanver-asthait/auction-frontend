@@ -290,35 +290,37 @@ export class AdminComponent implements OnInit, OnDestroy {
     // Fetch the first unsold player from the API
     this.http.get<Player[]>(`${environment.apiUrl}/players`).subscribe({
       next: (players) => {
-        // Find first player that is 'pending' (not sold yet)
-        const firstUnsoldPlayer = players.find(
-          (p) => p.status === PlayerStatus.PENDING
-        );
+        // Find a random player that is 'pending' (not sold yet)
+        let randomIndex = players.length;
+        let randomUnsoldPlayer;
+        while (randomIndex >= players.length) {
+          randomIndex = this.findRandomIndex(players.length)
+          randomUnsoldPlayer = players.find(
+            (p, i) => p.status === PlayerStatus.PENDING && i === randomIndex
+          );
+          if (randomUnsoldPlayer) 
+            randomIndex = players.length - 1;
+          else randomIndex = players.length;
+        }
 
-        if (!firstUnsoldPlayer) {
+        if (!randomUnsoldPlayer) {
           alert('❌ No unsold players found! Please add players first.');
           console.error('No unsold players available');
           return;
         }
 
-        console.log(
-          'Found first unsold player:',
-          firstUnsoldPlayer.name,
-          firstUnsoldPlayer._id
-        );
-        console.log(
-          '📤 Sending startAuction event with playerId:',
-          firstUnsoldPlayer._id
-        );
-
         // Start auction with the first player's ID
-        this.wsService.startAuction(firstUnsoldPlayer._id);
+        this.wsService.startAuction(randomUnsoldPlayer._id);
       },
       error: (err) => {
         console.error('Failed to fetch players:', err);
         alert('❌ Failed to load players. Check console for details.');
       },
     });
+  }
+
+  private findRandomIndex(length: number): number{
+    return this.Math.floor(Math.random() * length) + 1;
   }
 
   /**
