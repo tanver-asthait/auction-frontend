@@ -7,12 +7,13 @@ import {
   UpdatePlayerDto,
   PlayerStatus,
 } from '../models/player.model';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class PlayersService {
-  private apiUrl = 'http://localhost:3001/players';
+  private apiUrl = `${environment.apiUrl}/players`;
 
   // Signals for reactive state
   players = signal<Player[]>([]);

@@ -2,12 +2,13 @@ import { Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 import { Team, CreateTeamDto, UpdateTeamDto } from '../models/team.model';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class TeamsService {
-  private apiUrl = 'http://localhost:3001/teams';
+  private apiUrl = `${environment.apiUrl}/teams`;
 
   // Signals for reactive state
   teams = signal<Team[]>([]);

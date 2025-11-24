@@ -15,12 +15,13 @@ import {
 } from '../models/auction.model';
 import { Player } from '../models/player.model';
 import { Team } from '../models/team.model';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuctionService {
-  private apiUrl = 'http://localhost:3001/auction';
+  private apiUrl = `${environment.apiUrl}/auction`;
   private ws = inject(WebsocketService);
   private http = inject(HttpClient);
 
