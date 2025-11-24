@@ -1,4 +1,4 @@
-<app-navigation></app-navigation>
-<main class="main-content">
+<app-navigation *ngIf="shouldShowNavigation()"></app-navigation>
+<main class="main-content" [class.no-nav]="!shouldShowNavigation()">
   <router-outlet></router-outlet>
 </main>

@@ -1,4 +1,4 @@
-<div class="team-owner-container">
+<div class="team-owner-dashboard">
   <!-- Team Not Found Error -->
   @if (teamNotFound()) {
     <div class="error-container">
@@ -8,133 +8,189 @@
       <p class="example">Example: <code>/team-owner/your-team-id</code></p>
     </div>
   } @else {
-    <h1>Team Owner Dashboard</h1>
-    <h2>{{ teamName() }}</h2>
-
-    <!-- Connection Status -->
-    <div class="connection-status">
-      <p>
-        <strong>Connection:</strong>
-        @if (wsService.connected()) {
-          <span style="color: green;">● Connected</span>
-        } @else {
-          <span style="color: red;">● Disconnected</span>
-        }
-      </p>
-      @if (wsService.error()) {
-        <p style="color: red;">
-          <strong>Error:</strong> {{ wsService.error() }}
-        </p>
-      }
-    </div>
-
-    <hr />
-
-    <!-- Budget Information -->
-    <div class="budget-info">
-      <h3>Your Budget</h3>
-      <p class="budget-amount"><strong>Available:</strong> ${{ budget() }}</p>
-      @if (canBid()) {
-        <p><strong>After Next Bid:</strong> ${{ remainingBudget() }}</p>
-      }
-    </div>
-
-  <hr />
-
-  <!-- Last Sold Player Info -->
-  @if (lastSoldInfo()) {
-    <div class="last-sold-info" style="background-color: #e3f2fd; padding: 1rem; border-radius: 4px; margin-bottom: 1rem;">
-      <h3 style="margin-top: 0; color: #1565c0;">Last Transaction</h3>
-      <p style="font-size: 1.1rem; margin: 0;">{{ lastSoldInfo() }}</p>
-    </div>
-  }
-
-  <!-- Current Player -->
-  <div class="current-player">
-    <h3>Current Player</h3>
-    @if (currentPlayer()) {
-      <div class="player-card">
-        <h2>{{ currentPlayer()!.name }}</h2>
-        <p><strong>Position:</strong> {{ currentPlayer()!.position }}</p>
-        <p><strong>Base Price:</strong> ${{ currentPlayer()!.basePrice }}</p>
-        <p><strong>Status:</strong> {{ currentPlayer()!.status }}</p>
+    
+    <!-- Sticky Team Navigation Header -->
+    <header class="team-header">
+      <div class="header-content">
+        <div class="team-info">
+          <h1 class="team-name">
+            <span class="icon">🏆</span>
+            {{ teamName() }}
+          </h1>
+          <div class="team-details">
+            <div class="budget-display">
+              <span class="label">Available Budget:</span>
+              <span class="amount">${{ budget() }}</span>
+            </div>
+            @if (canBid()) {
+              <div class="next-bid-info">
+                <span class="label">After Next Bid:</span>
+                <span class="amount">${{ remainingBudget() }}</span>
+              </div>
+            }
+          </div>
+        </div>
+        <div class="header-status">
+          <div class="connection-indicator" [class.connected]="wsService.connected()" [class.disconnected]="!wsService.connected()">
+            <span class="status-dot"></span>
+            {{ wsService.connected() ? 'LIVE' : 'OFFLINE' }}
+          </div>
+          <div class="auction-status-badge" [class.active]="isRunning()">
+            {{ isRunning() ? 'AUCTION LIVE' : 'WAITING' }}
+          </div>
+        </div>
       </div>
-    } @else {
-      <p>No player is currently being auctioned</p>
-    }
-  </div>
+    </header>
 
-  <hr />
+    <!-- Main Dashboard Content -->
+    <div class="dashboard-content">
+      
+      <!-- Last Sold Player Info -->
+      @if (lastSoldInfo()) {
+        <div class="dashboard-card last-sold-card">
+          <div class="card-header">
+            <h3>💰 Last Transaction</h3>
+          </div>
+          <div class="transaction-info">
+            {{ lastSoldInfo() }}
+          </div>
+        </div>
+      }
 
-  <!-- Bidding Information -->
-  <div class="bidding-info">
-    <h3>Current Bidding</h3>
-    <div class="bid-details">
-      <p class="highest-bid"><strong>Highest Bid:</strong> ${{ highestBid() }}</p>
-      <p>
-        <strong>Highest Bidder:</strong>
-        @if (isHighestBidder()) {
-          <span style="color: green; font-weight: bold;">YOU</span>
-        } @else {
-          <span>{{ highestBidder() }}</span>
-        }
-      </p>
-      <p class="timer">
-        <strong>Time Remaining:</strong>
-        <span [class.urgent]="timer() <= 5">{{ timer() }}s</span>
-      </p>
-    </div>
-  </div>
+      <!-- Dashboard Grid -->
+      <div class="dashboard-grid">
+        
+        <!-- Current Player Card -->
+        <div class="dashboard-card current-player-card">
+          <div class="card-header">
+            <h3>🎯 Current Player</h3>
+          </div>
+          @if (currentPlayer()) {
+            <div class="player-info">
+              <div class="player-image" *ngIf="currentPlayer()?.image">
+                <img [src]="currentPlayer()!.image" [alt]="currentPlayer()!.name" />
+              </div>
+              <div class="player-details">
+                <h4 class="player-name">{{ currentPlayer()!.name }}</h4>
+                <div class="player-positions">
+                  <span *ngFor="let pos of getPositionArray(currentPlayer()!.position)" 
+                        class="position-badge" 
+                        [class]="'position-' + pos.toLowerCase().replace(' ', '-')">
+                    {{ pos }}
+                  </span>
+                </div>
+                <div class="price-info">
+                  <div class="base-price">Base: ${{ currentPlayer()!.basePrice }}</div>
+                  <div class="status">Status: {{ currentPlayer()!.status }}</div>
+                </div>
+              </div>
+            </div>
+          } @else {
+            <div class="no-player">
+              <div class="no-player-icon">🏃‍♂️</div>
+              <p>No player is currently being auctioned</p>
+            </div>
+          }
+        </div>
 
-  <hr />
-
-  <!-- Bid Controls -->
-  <div class="bid-controls">
-    <h3>Place Your Bid</h3>
-
-    @if (!isRunning()) {
-      <p class="info-message">Auction is not running. Waiting for next player...</p>
-    }
-
-    @if (isHighestBidder() && isRunning()) {
-      <p class="success-message">🎉 You are the highest bidder!</p>
-    }
-
-    @if (!canBid() && isRunning() && !isHighestBidder()) {
-      <div class="warning-message">
-        @if (!wsService.connected()) {
-          <p>⚠️ Not connected to server</p>
-        }
-        @if (timer() <= 0) {
-          <p>⏱️ Time expired</p>
-        }
-        @if (nextBidAmount() > budget()) {
-          <p>💰 Insufficient budget (Need ${{ nextBidAmount() }})</p>
-        }
+        <!-- Bidding Card -->
+        <div class="dashboard-card bidding-card" [class.can-bid]="canBid()">
+          <div class="card-header">
+            <h3>💰 Current Bidding</h3>
+          </div>
+          <div class="bidding-content">
+            <div class="bid-info">
+              <div class="highest-bid">
+                <span class="label">Highest Bid:</span>
+                <span class="amount">${{ highestBid() }}</span>
+              </div>
+              <div class="highest-bidder">
+                <span class="label">Highest Bidder:</span>
+                @if (isHighestBidder()) {
+                  <span class="you-badge">YOU</span>
+                } @else {
+                  <span class="bidder-name">{{ highestBidder() }}</span>
+                }
+              </div>
+            </div>
+            
+            <!-- Bid Controls -->
+            <div class="bid-controls">
+              @if (canBid()) {
+                <div class="next-bid-amount">
+                  Next Bid: ${{ nextBidAmount() }}
+                </div>
+                <button class="bid-btn" (click)="placeBid()">
+                  <span class="btn-icon">🔥</span>
+                  Place Bid
+                </button>
+              } @else {
+                <div class="bid-disabled-info">
+                  @if (!wsService.connected()) {
+                    <p class="reason">❌ Disconnected from server</p>
+                  } @else if (!isRunning()) {
+                    <p class="reason">⏸️ Auction not running</p>
+                  } @else if (isHighestBidder()) {
+                    <p class="reason">✅ You are the highest bidder</p>
+                  } @else if (nextBidAmount() > budget()) {
+                    <p class="reason">💸 Insufficient budget</p>
+                  } @else if (timer() <= 0) {
+                    <p class="reason">⏰ Timer expired</p>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+        </div>
       </div>
-    }
 
-    <div class="bid-button-container">
-      <button
-        class="bid-button"
-        (click)="placeBid()"
-        [disabled]="!canBid()">
-        <span class="button-text">Place Bid</span>
-        <span class="bid-amount">+${{ bidIncrement() }} (Total: ${{ nextBidAmount() }})</span>
-      </button>
+      <!-- Debug Information -->
+      <!-- <details class="debug-section">
+        <summary><strong>Debug Information</strong> (click to expand)</summary>
+        <div class="debug-content">
+          <h4>Current State:</h4>
+          <ul>
+            <li><strong>Team ID:</strong> {{ teamId() }}</li>
+            <li><strong>WebSocket Connected:</strong> {{ wsService.connected() ? 'Yes' : 'No' }}</li>
+            <li><strong>Auction Running:</strong> {{ isRunning() ? 'Yes' : 'No' }}</li>
+            <li><strong>Timer:</strong> {{ timer() }}s</li>
+            <li><strong>Current Player Exists:</strong> {{ currentPlayer() ? 'Yes' : 'No' }}</li>
+            @if (currentPlayer()) {
+              <li><strong>Current Player ID:</strong> {{ currentPlayer()?._id || 'N/A' }}</li>
+              <li><strong>Current Player Name:</strong> {{ currentPlayer()?.name || 'N/A' }}</li>
+            }
+            <li><strong>Highest Bid:</strong> ${{ highestBid() }}</li>
+            <li><strong>Highest Bidder:</strong> {{ highestBidder() }}</li>
+            <li><strong>Is Highest Bidder:</strong> {{ isHighestBidder() ? 'Yes' : 'No' }}</li>
+            <li><strong>Can Bid:</strong> {{ canBid() ? 'Yes' : 'No' }}</li>
+            <li><strong>Budget:</strong> ${{ budget() }}</li>
+            <li><strong>Next Bid Amount:</strong> ${{ nextBidAmount() }}</li>
+          </ul>
+          
+          <h4>Troubleshooting:</h4>
+          @if (!wsService.connected()) {
+            <p style="color: red;">❌ <strong>Not connected to server</strong> - Refresh page or check server status</p>
+          }
+          @if (!currentPlayer()) {
+            <p style="color: orange;">⚠️ <strong>No current player</strong> - Admin needs to start an auction</p>
+          }
+          @if (!isRunning()) {
+            <p style="color: orange;">⚠️ <strong>Auction not running</strong> - Admin needs to start the auction</p>
+          }
+          @if (timer() <= 0) {
+            <p style="color: red;">⏱️ <strong>Timer expired</strong> - Waiting for next player</p>
+          }
+          
+          <div style="margin-top: 15px;">
+            <button 
+              (click)="requestCurrentState()" 
+              [disabled]="!wsService.connected()"
+              style="padding: 8px 16px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">
+              Request Current State
+            </button>
+          </div>
+        </div>
+      </details> -->
     </div>
-
-    @if (canBid()) {
-      <p class="helper-text">Click to bid ${{ nextBidAmount() }}</p>
-    }
-  </div>
-
-  <hr />
-
-  <!-- Auction Status -->
-  <div class="auction-status">
-    <h3>Auction Status</h3>
-    <p><strong>Status:</strong> {{ isRunning() ? 'Active' : 'Paused' }}</p>
-  </div>
   }
 </div>

@@ -271,7 +271,16 @@ export class WebsocketService {
     this.socket.once(event, callback);
   }
 
-  isConnected(): boolean {
-    return this.socket?.connected ?? false;
+  /**
+   * Request current auction state (useful for clients joining mid-auction)
+   */
+  requestCurrentState(): void {
+    if (!this.socket?.connected) {
+      console.error('Cannot request state: WebSocket not connected');
+      return;
+    }
+
+    console.log('🔄 Requesting current auction state...');
+    this.socket.emit('requestState', {});
   }
 }

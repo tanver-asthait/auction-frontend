@@ -93,6 +93,16 @@ export class TeamOwnerComponent implements OnInit, OnDestroy {
     // Connect to WebSocket
     this.wsService.connect();
 
+    // Request current state immediately after connecting
+    setTimeout(() => {
+      if (this.wsService.connected()) {
+        console.log('🔄 Requesting current auction state...');
+        this.wsService.requestCurrentState();
+      } else {
+        console.log('⏳ WebSocket not connected yet, state will be sent automatically on connect');
+      }
+    }, 1000);
+
     // Listen to auction state updates
     const stateSub = this.wsService.listenToState().subscribe({
       next: (state: any) => {
@@ -122,9 +132,12 @@ export class TeamOwnerComponent implements OnInit, OnDestroy {
           this.timer.set(state.timer || 0);
         }
 
-        console.log('✅ Set isRunning to:', this.isRunning());
-        console.log('✅ Timer:', this.timer());
-        console.log('✅ canBid computed:', this.canBid());
+        console.log('✅ Updated state:');
+        console.log('  - Current player:', this.currentPlayer()?.name || 'None');
+        console.log('  - Is running:', this.isRunning());
+        console.log('  - Timer:', this.timer());
+        console.log('  - Highest bid:', this.highestBid());
+        console.log('  - Can bid:', this.canBid());
       },
       error: (err) => {
         console.error('State subscription error:', err);
@@ -244,23 +257,67 @@ export class TeamOwnerComponent implements OnInit, OnDestroy {
    * Place a bid for the current player
    */
   placeBid(): void {
+    console.log('🎯 Attempting to place bid...');
+    console.log('📊 Current state:', {
+      canBid: this.canBid(),
+      isRunning: this.isRunning(),
+      timer: this.timer(),
+      currentPlayer: this.currentPlayer(),
+      highestBid: this.highestBid(),
+      budget: this.budget(),
+      isConnected: this.wsService.connected()
+    });
+
     if (!this.canBid()) {
-      console.warn('Cannot place bid at this time');
+      console.warn('❌ Cannot place bid at this time. Reasons:');
+      console.warn('  - Connected:', this.wsService.connected());
+      console.warn('  - Auction running:', this.isRunning());
+      console.warn('  - Timer > 0:', this.timer() > 0);
+      console.warn('  - Not highest bidder:', !this.isHighestBidder());
+      console.warn('  - Can afford bid:', this.nextBidAmount() <= this.budget());
+      alert('❌ Cannot place bid at this time. Check auction status.');
       return;
     }
 
-    const playerId = this.currentPlayer()?._id;
-    if (!playerId) {
-      console.error('No current player to bid on');
-      alert('❌ No player is currently being auctioned');
+    const currentPlayer = this.currentPlayer();
+    if (!currentPlayer || !currentPlayer._id) {
+      console.error('❌ No current player to bid on');
+      console.error('Current player object:', currentPlayer);
+      alert('❌ No player is currently being auctioned. Please wait for the admin to start an auction.');
       return;
     }
 
+    const playerId = currentPlayer._id;
     const bidAmount = this.nextBidAmount();
-    console.log(
-      `Placing bid: Team ${this.teamId()}, Player ${playerId}, Amount $${bidAmount}`
-    );
+    
+    console.log(`🚀 Placing bid: Team ${this.teamId()}, Player ${playerId} (${currentPlayer.name}), Amount $${bidAmount}`);
+
+    // Show immediate feedback
+    const confirmMessage = `Place bid of $${bidAmount} for ${currentPlayer.name}?\n\nThis will leave you with $${this.remainingBudget()} remaining budget.`;
+    
+    if (!confirm(confirmMessage)) {
+      console.log('🚫 Bid cancelled by user');
+      return;
+    }
 
     this.wsService.sendBid(this.teamId(), playerId, bidAmount);
+  }
+
+  /**
+   * Helper method to split position string into array
+   * Position is stored as comma-separated string, e.g., "Goal Keeper,Midfielder"
+   */
+  getPositionArray(position: string): string[] {
+    if (!position) return [];
+    return position.split(',').map(pos => pos.trim()).filter(pos => pos.length > 0);
+  }
+
+  /**
+   * Request current auction state from server
+   * Useful for debugging connection issues
+   */
+  requestCurrentState(): void {
+    console.log('🔄 Requesting current auction state...');
+    this.wsService.requestCurrentState();
   }
 }

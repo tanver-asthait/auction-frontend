@@ -6,4 +6,8 @@
 
 .main-content {
   min-height: calc(100vh - 60px);
+  
+  &.no-nav {
+    min-height: 100vh;
+  }
 }
