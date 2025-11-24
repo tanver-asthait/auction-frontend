@@ -1,0 +1,206 @@
+<div class="players-management">
+  <div class="header">
+    <h1>Players Management</h1>
+    <button 
+      class="btn btn-primary" 
+      (click)="onShowCreateForm()"
+      [disabled]="loading">
+      <i class="icon-plus"></i>
+      Add New Player
+    </button>
+  </div>
+
+  <!-- Loading Spinner -->
+  <div *ngIf="loading" class="loading-container">
+    <div class="spinner"></div>
+    <p>Loading...</p>
+  </div>
+
+  <!-- Player Form -->
+  <div *ngIf="showForm" class="form-container">
+    <div class="form-header">
+      <h3>{{ isEditing ? 'Edit Player' : 'Create New Player' }}</h3>
+      <button class="btn btn-secondary" (click)="onCancel()">
+        <i class="icon-close"></i>
+      </button>
+    </div>
+
+    <form [formGroup]="playerForm" (ngSubmit)="onSubmit()">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="name">Player Name *</label>
+          <input
+            type="text"
+            id="name"
+            formControlName="name"
+            class="form-control"
+            placeholder="Enter player name"
+            [class.error]="playerForm.get('name')?.invalid && playerForm.get('name')?.touched">
+          <div class="error-message" *ngIf="playerForm.get('name')?.invalid && playerForm.get('name')?.touched">
+            <span *ngIf="playerForm.get('name')?.errors?.['required']">Name is required</span>
+            <span *ngIf="playerForm.get('name')?.errors?.['minlength']">Name must be at least 2 characters</span>
+          </div>
+        </div>
+
+        <div class="form-group position-group">
+          <label for="position">Position *</label>
+          <div class="position-selector">
+            <div class="position-options">
+              <div 
+                *ngFor="let position of positions" 
+                class="position-option"
+                [class.selected]="isPositionSelected(position)"
+                (click)="onTogglePosition(position)">
+                <span class="position-checkbox">
+                  <i *ngIf="isPositionSelected(position)" class="icon-check">✓</i>
+                </span>
+                <span class="position-label">{{ position }}</span>
+              </div>
+            </div>
+            <div class="selected-positions" *ngIf="selectedPositions.length > 0">
+              <small>Selected: {{ selectedPositions.join(', ') }}</small>
+            </div>
+          </div>
+          <div class="error-message" *ngIf="playerForm.get('position')?.invalid && playerForm.get('position')?.touched">
+            At least one position is required
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="basePrice">Base Price (in crores) *</label>
+          <input
+            type="number"
+            id="basePrice"
+            formControlName="basePrice"
+            class="form-control"
+            placeholder="Enter base price"
+            min="0"
+            step="0.1"
+            [class.error]="playerForm.get('basePrice')?.invalid && playerForm.get('basePrice')?.touched">
+          <div class="error-message" *ngIf="playerForm.get('basePrice')?.invalid && playerForm.get('basePrice')?.touched">
+            <span *ngIf="playerForm.get('basePrice')?.errors?.['required']">Base price is required</span>
+            <span *ngIf="playerForm.get('basePrice')?.errors?.['min']">Base price must be greater than 0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Image Upload Section -->
+      <div class="form-group image-upload">
+        <label>Player Photo (Optional)</label>
+        <div class="image-upload-container">
+          <div class="image-preview" *ngIf="imagePreview">
+            <img [src]="imagePreview" alt="Player preview">
+            <button type="button" class="btn btn-danger btn-sm remove-image" (click)="onRemoveImage()">
+              <i class="icon-trash"></i>
+            </button>
+          </div>
+          
+          <div class="upload-zone" *ngIf="!imagePreview">
+            <input
+              type="file"
+              id="imageUpload"
+              accept="image/*"
+              (change)="onFileSelected($event)"
+              style="display: none;">
+            <label for="imageUpload" class="upload-label">
+              <i class="icon-camera"></i>
+              <span>Click to upload image</span>
+              <small>PNG, JPG, JPEG, GIF, WEBP (Max 5MB)</small>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" (click)="onCancel()">
+          Cancel
+        </button>
+        <button 
+          type="submit" 
+          class="btn btn-primary" 
+          [disabled]="playerForm.invalid || loading">
+          {{ isEditing ? 'Update Player' : 'Create Player' }}
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Players List -->
+  <div class="players-grid" *ngIf="!loading">
+    <div class="grid-header">
+      <h3>Players List ({{ players.length }})</h3>
+    </div>
+
+    <div class="players-table" *ngIf="players.length > 0">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Photo</th>
+            <th>Name</th>
+            <th>Position</th>
+            <th>Base Price</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let player of players">
+            <td class="photo-cell">
+              <div class="player-photo">
+                <img *ngIf="player.image" [src]="player.image" [alt]="player.name">
+                <div *ngIf="!player.image" class="no-photo">
+                  <i class="icon-user"></i>
+                </div>
+              </div>
+            </td>
+            <td class="name-cell">{{ player.name }}</td>
+            <td class="position-cell">
+              <div class="position-badges">
+                <span 
+                  *ngFor="let pos of getPositionArray(player.position)" 
+                  class="position-badge" 
+                  [class]="'position-' + pos.toLowerCase().replace(' ', '-')">
+                  {{ pos }}
+                </span>
+              </div>
+            </td>
+            <td class="price-cell">₹{{ player.basePrice }}cr</td>
+            <td class="status-cell">
+              <span class="status-badge" [class]="getStatusBadgeClass(player.status)">
+                {{ player.status }}
+              </span>
+            </td>
+            <td class="actions-cell">
+              <button 
+                class="btn btn-sm btn-outline" 
+                (click)="onEditPlayer(player)"
+                [disabled]="loading"
+                title="Edit player">
+                <i class="icon-edit"></i>
+              </button>
+              <button 
+                class="btn btn-sm btn-danger" 
+                (click)="onDeletePlayer(player)"
+                [disabled]="loading"
+                title="Delete player">
+                <i class="icon-trash"></i>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="empty-state" *ngIf="players.length === 0">
+      <div class="empty-icon">
+        <i class="icon-users"></i>
+      </div>
+      <h3>No players found</h3>
+      <p>Start by adding your first player to the auction.</p>
+      <button class="btn btn-primary" (click)="onShowCreateForm()">
+        <i class="icon-plus"></i>
+        Add First Player
+      </button>
+    </div>
+  </div>
+</div>

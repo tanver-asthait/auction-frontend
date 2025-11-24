@@ -3,6 +3,7 @@ import { AdminComponent } from './pages/admin/admin.component';
 import { TeamOwnerComponent } from './pages/team-owner/team-owner.component';
 import { PublicViewerComponent } from './pages/public-viewer/public-viewer.component';
 import { TeamsManagementComponent } from './pages/teams-management/teams-management.component';
+import { PlayersManagementComponent } from './pages/players-management/players-management.component';
 
 export const routes: Routes = [
   {
@@ -19,6 +20,11 @@ export const routes: Routes = [
     path: 'teams-management',
     component: TeamsManagementComponent,
     title: 'Teams Management',
+  },
+  {
+    path: 'players-management',
+    component: PlayersManagementComponent,
+    title: 'Players Management',
   },
   {
     path: 'team-owner/:teamId',

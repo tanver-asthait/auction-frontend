@@ -11,6 +11,7 @@ export interface Player {
   basePrice: number;
   finalPrice: number | null;
   boughtBy: string | null;
+  image?: string;
   status: PlayerStatus;
   createdAt: Date;
   updatedAt: Date;
@@ -22,6 +23,7 @@ export interface CreatePlayerDto {
   basePrice: number;
   finalPrice?: number;
   boughtBy?: string;
+  image?: string;
   status?: PlayerStatus;
 }
 
@@ -31,5 +33,6 @@ export interface UpdatePlayerDto {
   basePrice?: number;
   finalPrice?: number;
   boughtBy?: string;
+  image?: string;
   status?: PlayerStatus;
 }
