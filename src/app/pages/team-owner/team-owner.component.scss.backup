@@ -1,0 +1,542 @@
+﻿.team-owner-dashboard {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.team-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(0, 0, 0, 0.9);
+  backdrop-filter: blur(10px);
+  border-bottom: 3px solid #00d4ff;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.team-info .team-name {
+  margin: 0 0 8px 0;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #00d4ff;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.team-name .icon {
+  margin-right: 0.5rem;
+  font-size: 1.8rem;
+}
+
+.team-details {
+  display: flex;
+  gap: 2rem;
+  align-items: center;
+}
+
+.budget-display .label,
+.next-bid-info .label {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.8);
+  margin-right: 8px;
+}
+
+.budget-display .amount {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #4ade80;
+}
+
+.next-bid-info .amount {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #fbbf24;
+}
+
+.header-status {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.connection-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.connection-indicator.connected {
+  background: rgba(34, 197, 94, 0.2);
+  color: #4ade80;
+}
+
+.connection-indicator.connected .status-dot {
+  background: #4ade80;
+}
+
+.connection-indicator.disconnected {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+}
+
+.connection-indicator.disconnected .status-dot {
+  background: #ef4444;
+}
+
+.auction-status-badge {
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  background: rgba(156, 163, 175, 0.2);
+  color: #9ca3af;
+}
+
+.auction-status-badge.active {
+  background: rgba(251, 191, 36, 0.2);
+  color: #fbbf24;
+  animation: pulse 2s infinite;
+}
+
+.dashboard-content {
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.dashboard-card {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.dashboard-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+}
+
+.card-header {
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.card-header h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #00d4ff;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Current Player Card Styles */
+.current-player-card .player-info {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+}
+
+.player-image {
+  width: 100px;
+  height: 100px;
+  border-radius: 16px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid rgba(0, 212, 255, 0.3);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.player-image::before {
+  content: '';
+  position: absolute;
+  top: -3px;
+  left: -3px;
+  right: -3px;
+  bottom: -3px;
+  background: linear-gradient(45deg, #00d4ff, #4ade80, #fbbf24, #ef4444);
+  border-radius: 16px;
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.player-image:hover::before {
+  opacity: 1;
+}
+
+.player-image:hover {
+  transform: scale(1.05);
+  box-shadow: 0 12px 30px rgba(0, 212, 255, 0.4);
+}
+
+.player-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 13px;
+  transition: transform 0.3s ease;
+}
+
+.player-image:hover img {
+  transform: scale(1.1);
+}
+
+.player-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(0, 212, 255, 0.1), rgba(168, 85, 247, 0.1));
+  border-radius: 13px;
+}
+
+.placeholder-icon {
+  font-size: 3rem;
+  color: rgba(255, 255, 255, 0.5);
+  transition: all 0.3s ease;
+}
+
+.player-image:hover .placeholder-icon {
+  color: rgba(255, 255, 255, 0.8);
+  transform: scale(1.1);
+}
+
+.player-details {
+  flex: 1;
+}
+
+.player-name {
+  margin: 0 0 12px 0;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.player-positions {
+  margin-bottom: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.position-badge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin: 0;
+  background: rgba(0, 212, 255, 0.2);
+  color: #00d4ff;
+  border: 1px solid rgba(0, 212, 255, 0.5);
+  transition: all 0.3s ease;
+}
+
+.position-badge:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 212, 255, 0.3);
+}
+
+.position-badge.position-goal-keeper {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  border-color: rgba(239, 68, 68, 0.5);
+}
+
+.position-badge.position-defender {
+  background: rgba(34, 197, 94, 0.2);
+  color: #4ade80;
+  border-color: rgba(34, 197, 94, 0.5);
+}
+
+.position-badge.position-midfielder {
+  background: rgba(251, 191, 36, 0.2);
+  color: #fbbf24;
+  border-color: rgba(251, 191, 36, 0.5);
+}
+
+.position-badge.position-forward {
+  background: rgba(168, 85, 247, 0.2);
+  color: #a855f7;
+  border-color: rgba(168, 85, 247, 0.5);
+}
+
+.price-info {
+  display: flex;
+  gap: 1.5rem;
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.base-price {
+  font-weight: 600;
+  color: #4ade80;
+  padding: 8px 12px;
+  background: rgba(74, 222, 128, 0.1);
+  border-radius: 8px;
+  border: 1px solid rgba(74, 222, 128, 0.3);
+}
+
+.status {
+  color: #fbbf24;
+  font-weight: 600;
+  padding: 8px 12px;
+  background: rgba(251, 191, 36, 0.1);
+  border-radius: 8px;
+  border: 1px solid rgba(251, 191, 36, 0.3);
+}
+
+.no-player {
+  text-align: center;
+  padding: 3rem 2rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.no-player-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+  opacity: 0.7;
+}
+
+.no-player p {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 500;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Enhanced Bid Button Styles */
+.bidding-card.can-bid {
+  border-color: #4ade80;
+  background: rgba(34, 197, 94, 0.1);
+}
+
+.bid-info {
+  margin-bottom: 1.5rem;
+}
+
+.highest-bid,
+.highest-bidder {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.highest-bid .label,
+.highest-bidder .label {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.highest-bid .amount {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #4ade80;
+}
+
+.you-badge {
+  background: #4ade80;
+  color: #000;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+
+.bidder-name {
+  color: #fbbf24;
+  font-weight: 500;
+}
+
+.next-bid-amount {
+  text-align: center;
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #fbbf24;
+  margin-bottom: 1.5rem;
+  padding: 16px 24px;
+  background: rgba(251, 191, 36, 0.15);
+  border: 3px solid #fbbf24;
+  border-radius: 16px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  animation: nextBidPulse 2s ease-in-out infinite;
+}
+
+.bid-btn {
+  width: 100%;
+  background: linear-gradient(135deg, #10b981, #059669, #047857);
+  border: 4px solid #34d399;
+  border-radius: 20px;
+  padding: 2rem 2.5rem;
+  color: #000;
+  font-weight: 900;
+  font-size: 1.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 12px 30px rgba(16, 185, 129, 0.5), 
+              0 0 0 0 rgba(16, 185, 129, 0.7),
+              inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  animation: bidButtonPulse 3s ease-in-out infinite;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.bid-btn::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  transform: rotate(45deg);
+  transition: all 0.6s;
+  opacity: 0;
+}
+
+.bid-btn::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at center, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+  border-radius: 16px;
+}
+
+.btn-icon {
+  font-size: 2rem;
+  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.3));
+  animation: iconBounce 2s ease-in-out infinite;
+}
+
+.bid-btn:hover {
+  transform: translateY(-6px) scale(1.03);
+  box-shadow: 0 20px 40px rgba(16, 185, 129, 0.7), 
+              0 0 0 12px rgba(16, 185, 129, 0.2),
+              inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  border-color: #6ee7b7;
+  animation: none;
+  background: linear-gradient(135deg, #34d399, #10b981, #059669);
+}
+
+.bid-btn:hover::before {
+  opacity: 1;
+  left: 100%;
+}
+
+.bid-btn:active {
+  transform: translateY(-3px) scale(1.01);
+  box-shadow: 0 12px 25px rgba(16, 185, 129, 0.6);
+}
+
+.bid-btn:disabled {
+  background: rgba(156, 163, 175, 0.3);
+  color: rgba(255, 255, 255, 0.5);
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+  border-color: rgba(156, 163, 175, 0.3);
+  animation: none;
+}
+
+.bid-btn:disabled::before,
+.bid-btn:disabled::after {
+  display: none;
+}
+
+.bid-disabled-info {
+  text-align: center;
+  padding: 1.5rem;
+}
+
+.reason {
+  margin: 0;
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.7);
+  background: rgba(0, 0, 0, 0.2);
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-weight: 500;
+}
+
+@keyframes bidButtonPulse {
+  0%, 100% {
+    box-shadow: 0 12px 30px rgba(16, 185, 129, 0.5), 
+                0 0 0 0 rgba(16, 185, 129, 0.7),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  }
+  50% {
+    box-shadow: 0 12px 30px rgba(16, 185, 129, 0.5), 
+                0 0 0 15px rgba(16, 185, 129, 0.0),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  }
+}
+
+@keyframes nextBidPulse {
+  0%, 100% {
+    background: rgba(251, 191, 36, 0.15);
+    border-color: #fbbf24;
+  }
+  50% {
+    background: rgba(251, 191, 36, 0.25);
+    border-color: #f59e0b;
+  }
+}
+
+@keyframes iconBounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}

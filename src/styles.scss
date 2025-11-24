@@ -1,1 +1,84 @@
 /* You can add global styles to this file, and also import other style files */
+
+// Import shared styles
+@import 'styles/variables';
+@import 'styles/mixins';
+@import 'styles/animations';
+
+// Global Reset & Base Styles
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+// Global Dashboard Container
+.dashboard-container {
+  min-height: 100vh;
+  @include gradient-background;
+  color: $text-light;
+}
+
+// Global Dashboard Header
+.dashboard-header {
+  @include dashboard-header;
+}
+
+// Global Dashboard Grid
+.dashboard-grid {
+  @include dashboard-grid;
+}
+
+// Global Dashboard Card
+.dashboard-card {
+  @include glass-card;
+  padding: $spacing-lg;
+
+  .card-header {
+    @include card-header;
+  }
+}
+
+// Global Connection Status
+.connection-indicator {
+  @include status-badge($success-light, $danger-light);
+}
+
+// Global Buttons
+.btn {
+  &-primary {
+    @include button-primary;
+  }
+
+  &-success {
+    @include button-success;
+  }
+
+  &-danger {
+    @include button-danger;
+  }
+}
+
+// Utility Classes
+.text-center {
+  text-align: center;
+}
+
+.mt-1 { margin-top: $spacing-sm; }
+.mt-2 { margin-top: $spacing-md; }
+.mt-3 { margin-top: $spacing-lg; }
+
+.mb-1 { margin-bottom: $spacing-sm; }
+.mb-2 { margin-bottom: $spacing-md; }
+.mb-3 { margin-bottom: $spacing-lg; }
+
+.p-1 { padding: $spacing-sm; }
+.p-2 { padding: $spacing-md; }
+.p-3 { padding: $spacing-lg; }

@@ -1,0 +1,174 @@
+// Glass Morphism Card
+@mixin glass-card($blur: 15px, $opacity: 0.1) {
+  background: rgba(255, 255, 255, $opacity);
+  backdrop-filter: blur($blur);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: $radius-xl;
+  box-shadow: $shadow-lg;
+  transition: all $transition-normal;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: $shadow-xl;
+  }
+}
+
+// Gradient Background
+@mixin gradient-background {
+  background: $primary-gradient;
+  background-attachment: fixed;
+}
+
+// Connection Status Badge
+@mixin status-badge($connected-color, $disconnected-color) {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  padding: 6px 12px;
+  border-radius: $radius-pill;
+  font-size: 0.9rem;
+  font-weight: 600;
+
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    animation: blink 1.5s infinite;
+  }
+
+  &.connected {
+    background: rgba($connected-color, 0.2);
+    color: $connected-color;
+
+    .status-dot {
+      background: $connected-color;
+    }
+  }
+
+  &.disconnected {
+    background: rgba($disconnected-color, 0.2);
+    color: $disconnected-color;
+
+    .status-dot {
+      background: $disconnected-color;
+    }
+  }
+}
+
+// Dashboard Header
+@mixin dashboard-header {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 20px;
+
+  .header-content {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .dashboard-title {
+    margin: 0;
+    font-size: 2.5rem;
+    font-weight: 700;
+    background: linear-gradient(45deg, #fff, #f0f0f0);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+}
+
+// Grid Layout
+@mixin dashboard-grid($columns: auto-fit, $min-size: 300px) {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 30px 20px;
+  display: grid;
+  grid-template-columns: repeat($columns, minmax($min-size, 1fr));
+  gap: $spacing-lg;
+}
+
+// Button Base
+@mixin button-base {
+  padding: 12px 24px;
+  border: none;
+  border-radius: $radius-md;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all $transition-normal;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+
+  &:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: $shadow-md;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+// Primary Button
+@mixin button-primary {
+  @include button-base;
+  background: linear-gradient(135deg, $primary-color, $secondary-color);
+  color: $text-light;
+
+  &:hover:not(:disabled) {
+    background: linear-gradient(135deg, darken($primary-color, 10%), darken($secondary-color, 10%));
+  }
+}
+
+// Success Button
+@mixin button-success {
+  @include button-base;
+  background: linear-gradient(135deg, $success-color, $success-light);
+  color: $text-light;
+}
+
+// Danger Button
+@mixin button-danger {
+  @include button-base;
+  background: linear-gradient(135deg, $danger-color, $danger-light);
+  color: $text-light;
+}
+
+// Card Header
+@mixin card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+
+  h2, h3 {
+    margin: 0;
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: $text-light;
+  }
+}
+
+// Responsive
+@mixin mobile {
+  @media (max-width: $breakpoint-mobile) {
+    @content;
+  }
+}
+
+@mixin tablet {
+  @media (max-width: $breakpoint-tablet) {
+    @content;
+  }
+}
+
+@mixin desktop {
+  @media (min-width: $breakpoint-desktop) {
+    @content;
+  }
+}

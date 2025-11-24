@@ -3,9 +3,7 @@
 @import '../../../styles/animations';
 
 .admin-dashboard {
-  min-height: 100vh;
-  @include gradient-background;
-  color: $text-light;
+  @extend .dashboard-container;
 
   .dashboard-header {
     @include dashboard-header;
@@ -152,33 +150,6 @@
 
         &.sold .stat-value { color: $success-color; }
         &.remaining .stat-value { color: $warning-color; }
-      }
-    }
-  }
-
-  // Recent Bids
-  .recent-bids-card {
-    .bids-list {
-      .bid-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 12px;
-        margin-bottom: $spacing-sm;
-        border-radius: $radius-sm;
-        background: rgba(255, 255, 255, 0.1);
-        animation: slideIn 0.3s ease;
-
-        &.bid-0 { border-left: 3px solid $warning-color; }
-        
-        .bid-team {
-          font-weight: 600;
-        }
-
-        .bid-amount {
-          color: $warning-color;
-          font-weight: 600;
-        }
       }
     }
   }

@@ -1,49 +1,40 @@
+@import '../../../styles/variables';
+@import '../../../styles/mixins';
+@import '../../../styles/animations';
+
 .public-viewer-container {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  background-attachment: fixed;
+  @include gradient-background;
   padding: 20px;
-}
 
-// Header
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 30px;
-  padding: 25px;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
-  border-radius: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
-  transition: all 0.3s ease;
+  // Header
+  .header {
+    @include glass-card($blur: 20px, $opacity: 0.95);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding: 25px;
 
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
-  }
+    h1 {
+      margin: 0;
+      color: $text-dark;
+      font-size: 2.5em;
+      font-weight: 600;
+      background: $primary-gradient;
+      background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
 
-  h1 {
-    margin: 0;
-    color: #333;
-    font-size: 2.5em;
-    font-weight: 600;
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    background-clip: text;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-
-  .connection-status {
-    .status-badge {
+    .connection-status .status-badge {
       padding: 12px 20px;
-      border-radius: 25px;
+      border-radius: $radius-pill;
       font-weight: 600;
       font-size: 1em;
       text-transform: uppercase;
       letter-spacing: 0.5px;
-      transition: all 0.3s ease;
+      transition: all $transition-normal;
 
       &.connected {
         background: linear-gradient(135deg, #d4edda, #c3e6cb);
@@ -59,76 +50,52 @@
       }
     }
   }
-}
 
-// Main Layout
-.main-content {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 20px;
+  // Main Layout
+  .main-content {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 20px;
 
-  @media (max-width: 968px) {
-    grid-template-columns: 1fr;
-  }
-}
-
-// Common Card Styles
-section {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
-  border-radius: 20px;
-  padding: 25px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  margin-bottom: 25px;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-
-  &:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
-    background: rgba(255, 255, 255, 0.98);
-  }
-
-  h2 {
-    margin-top: 0;
-    margin-bottom: 20px;
-    color: #333;
-    font-size: 1.5em;
-    font-weight: 600;
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    background-clip: text;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    border-bottom: 3px solid transparent;
-    border-image: linear-gradient(135deg, #667eea, #764ba2) 1;
-    padding-bottom: 12px;
-    position: relative;
-
-    &::after {
-      content: '';
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      height: 3px;
-      background: linear-gradient(135deg, #667eea, #764ba2);
-      border-radius: 2px;
+    @include tablet {
+      grid-template-columns: 1fr;
     }
   }
-}
 
-// Player Card
-.player-card {
-  .player-content {
+  // Section Styling
+  section {
+    @include glass-card($blur: 20px, $opacity: 0.95);
+    padding: 25px;
+    margin-bottom: 25px;
+    background: rgba(255, 255, 255, 0.95);
+
+    h2 {
+      margin-top: 0;
+      margin-bottom: 20px;
+      color: $text-dark;
+      font-size: 1.5em;
+      font-weight: 600;
+      background: $primary-gradient;
+      background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      border-bottom: 3px solid transparent;
+      border-image: $primary-gradient 1;
+      padding-bottom: 12px;
+    }
+  }
+
+  // Player Card
+  .player-card {
     .player-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 25px;
       padding: 20px;
-      background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
-      border-radius: 15px;
-      border: 1px solid rgba(102, 126, 234, 0.2);
+      background: linear-gradient(135deg, rgba($primary-color, 0.1), rgba($secondary-color, 0.1));
+      border-radius: $radius-lg;
+      border: 1px solid rgba($primary-color, 0.2);
 
       .player-info {
         display: flex;
@@ -140,545 +107,257 @@ section {
           height: 80px;
           border-radius: 50%;
           object-fit: cover;
-          border: 3px solid #667eea;
-          box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-          transition: all 0.3s ease;
+          border: 3px solid $primary-color;
+          box-shadow: 0 4px 12px rgba($primary-color, 0.3);
 
           &:hover {
             transform: scale(1.05);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 6px 20px rgba($primary-color, 0.4);
           }
         }
 
-        .player-placeholder {
-          width: 80px;
-          height: 80px;
-          border-radius: 50%;
-          background: linear-gradient(135deg, #667eea, #764ba2);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: white;
-          font-size: 24px;
-          font-weight: bold;
-          border: 3px solid rgba(255, 255, 255, 0.3);
-          box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-        }
-
-        h3 {
-          margin: 0;
-          font-size: 2.2em;
+        .player-name {
+          font-size: 1.8rem;
           font-weight: 700;
-          background: linear-gradient(135deg, #333, #555);
-          background-clip: text;
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
+          color: $text-dark;
+          margin: 0;
+        }
+
+        .player-position {
+          display: inline-block;
+          padding: 6px 12px;
+          background: rgba($primary-color, 0.2);
+          color: $primary-color;
+          border-radius: $radius-pill;
+          font-size: 0.9rem;
+          font-weight: 600;
         }
       }
 
-      .player-position {
-        background: linear-gradient(135deg, #667eea, #764ba2);
-        color: white;
-        padding: 10px 20px;
-        border-radius: 25px;
-        font-weight: 600;
-        font-size: 1.1em;
-        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-      }
-    }
-
-    .player-details {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 15px;
-
-      .detail-item {
-        display: flex;
-        flex-direction: column;
-        gap: 5px;
+      .base-price {
+        text-align: right;
 
         .label {
-          font-size: 0.9em;
+          font-size: 0.9rem;
           color: #666;
+          margin-bottom: $spacing-xs;
         }
 
         .value {
-          font-size: 1.3em;
-          font-weight: bold;
-          color: #333;
-
-          &.status {
-            text-transform: uppercase;
-            color: #667eea;
-          }
+          font-size: 1.8rem;
+          font-weight: 700;
+          color: $primary-color;
         }
       }
     }
-  }
 
-  .no-player {
-    text-align: center;
-    padding: 40px 20px;
-    color: #666;
-
-    p {
-      margin: 10px 0;
-      font-size: 1.1em;
-    }
-
-    .subtitle {
-      font-size: 0.95em;
-      color: #999;
-    }
-  }
-}
-
-// Bidding Card
-.bidding-card {
-  .bid-info {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 25px;
-
-    .highest-bid,
-    .highest-bidder {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+    .no-player {
       text-align: center;
-      padding: 25px;
-      background: linear-gradient(135deg, rgba(40, 167, 69, 0.1), rgba(40, 167, 69, 0.05));
-      border-radius: 15px;
-      border: 2px solid rgba(40, 167, 69, 0.2);
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      position: relative;
-      overflow: hidden;
+      padding: 40px 20px;
+      color: #999;
 
-      &::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
-        transition: left 0.5s;
+      .icon {
+        font-size: 4rem;
+        opacity: 0.3;
+        margin-bottom: 16px;
       }
 
-      &:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 8px 25px rgba(40, 167, 69, 0.2);
-        border-color: rgba(40, 167, 69, 0.4);
-
-        &::before {
-          left: 100%;
-        }
-      }
-
-      .label {
-        font-size: 1em;
-        color: #555;
-        margin-bottom: 12px;
-        font-weight: 500;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-      }
-
-      .amount {
-        font-size: 2.8em;
-        font-weight: 800;
-        background: linear-gradient(135deg, #28a745, #20c997);
-        background-clip: text;
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        margin-bottom: 5px;
-      }
-
-      .team-name {
-        font-size: 1.6em;
-        font-weight: 600;
-        background: linear-gradient(135deg, #667eea, #764ba2);
-        background-clip: text;
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-      }
-    }
-
-    .highest-bidder {
-      background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.05));
-      border-color: rgba(102, 126, 234, 0.2);
-
-      &:hover {
-        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.2);
-        border-color: rgba(102, 126, 234, 0.4);
+      p {
+        font-size: 1.2rem;
+        margin: 0;
       }
     }
   }
-}
 
-// Timer Card
-.timer-card {
-  .timer-display {
+  // Timer Section
+  .timer-section {
     display: flex;
-    flex-direction: column;
     align-items: center;
-    padding: 40px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: 20px;
-    color: white;
-    position: relative;
-    overflow: hidden;
-    box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
+    justify-content: center;
+    gap: 20px;
+    padding: 30px;
+    background: linear-gradient(135deg, rgba($warning-color, 0.1), rgba(#fd7e14, 0.1));
+    border-radius: $radius-lg;
+    margin-bottom: 20px;
 
-    &::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: linear-gradient(45deg, rgba(255, 255, 255, 0.1), transparent);
-      pointer-events: none;
+    .timer-display {
+      font-size: 5rem;
+      font-weight: 700;
+      font-family: 'Courier New', monospace;
+      color: $warning-color;
+      text-shadow: 0 0 20px rgba($warning-color, 0.3);
+
+      &.urgent {
+        color: $danger-color;
+        animation: pulse 1s infinite;
+      }
     }
 
-    .timer-value {
-      font-size: 5.5em;
-      font-weight: 800;
-      line-height: 1;
-      text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-      position: relative;
-      z-index: 1;
-    }
-
-    .timer-unit {
-      font-size: 1.4em;
-      opacity: 0.9;
-      margin-top: 12px;
-      font-weight: 500;
+    .timer-label {
+      font-size: 1.2rem;
+      color: #666;
       text-transform: uppercase;
       letter-spacing: 1px;
-      position: relative;
-      z-index: 1;
-    }
-
-    &.urgent {
-      animation: pulseUrgent 1.5s infinite;
-      background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
-      box-shadow: 0 8px 32px rgba(220, 53, 69, 0.4);
     }
   }
 
-  .timer-status {
+  // Bidding Section
+  .bidding-section {
     text-align: center;
-    margin-top: 20px;
-    color: #555;
-    font-weight: 500;
-    font-size: 1.1em;
-  }
-}
 
-@keyframes pulseUrgent {
-  0%, 100% {
-    transform: scale(1);
-    opacity: 1;
-    box-shadow: 0 8px 32px rgba(220, 53, 69, 0.4);
-  }
-  50% {
-    transform: scale(1.02);
-    opacity: 0.9;
-    box-shadow: 0 12px 40px rgba(220, 53, 69, 0.6);
-  }
-}
-
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-// Activity Card
-.activity-card {
-  max-height: 450px;
-
-  .activity-list {
-    max-height: 370px;
-    overflow-y: auto;
-    padding-right: 10px;
-
-    .activity-item {
-      padding: 15px;
-      margin-bottom: 12px;
-      background: linear-gradient(135deg, rgba(102, 126, 234, 0.05), rgba(118, 75, 162, 0.05));
-      border-radius: 12px;
-      border-left: 4px solid transparent;
-      border-image: linear-gradient(135deg, #667eea, #764ba2) 1;
-      font-size: 1em;
-      color: #333;
-      transition: all 0.3s ease;
-      position: relative;
-      overflow: hidden;
-
-      &::before {
-        content: '';
-        position: absolute;
-        left: 0;
-        top: 0;
-        bottom: 0;
-        width: 4px;
-        background: linear-gradient(135deg, #667eea, #764ba2);
-      }
-
-      &:hover {
-        transform: translateX(5px);
-        background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
-        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
-      }
-    }
-
-    .no-activity {
-      text-align: center;
-      color: #666;
+    .current-bid {
       padding: 30px;
-      font-size: 1.1em;
-      font-style: italic;
+      background: linear-gradient(135deg, rgba($success-color, 0.1), rgba($success-light, 0.1));
+      border-radius: $radius-lg;
+      margin-bottom: 20px;
+
+      .bid-amount {
+        font-size: 4rem;
+        font-weight: 700;
+        color: $success-light;
+        text-shadow: 0 0 20px rgba($success-light, 0.3);
+        margin-bottom: $spacing-md;
+      }
+
+      .bid-team {
+        font-size: 1.5rem;
+        color: #666;
+        font-weight: 600;
+      }
     }
 
-    // Custom scrollbar
-    &::-webkit-scrollbar {
-      width: 10px;
-    }
+    .bid-history {
+      .bid-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: $spacing-md;
+        background: rgba($primary-color, 0.05);
+        border-radius: $radius-md;
+        margin-bottom: $spacing-sm;
+        border-left: 4px solid $primary-color;
 
-    &::-webkit-scrollbar-track {
-      background: rgba(102, 126, 234, 0.1);
-      border-radius: 10px;
-    }
+        &:first-child {
+          border-left-color: $warning-color;
+          background: rgba($warning-color, 0.1);
+        }
 
-    &::-webkit-scrollbar-thumb {
-      background: linear-gradient(135deg, #667eea, #764ba2);
-      border-radius: 10px;
-      border: 2px solid transparent;
-      background-clip: content-box;
-    }
+        .team-name {
+          font-weight: 600;
+          color: $text-dark;
+        }
 
-    &::-webkit-scrollbar-thumb:hover {
-      background: linear-gradient(135deg, #5a6fd8, #6a5d9a);
-      background-clip: content-box;
+        .amount {
+          color: $warning-color;
+          font-weight: 700;
+          font-size: 1.1rem;
+        }
+      }
     }
   }
-}
 
-// Teams Card
-.teams-card {
+  // Teams List
   .teams-list {
-    display: flex;
-    flex-direction: column;
-    gap: 18px;
-
-    .team-item {
-      padding: 20px;
-      background: linear-gradient(135deg, rgba(102, 126, 234, 0.05), rgba(118, 75, 162, 0.05));
-      border-radius: 15px;
-      border: 1px solid rgba(102, 126, 234, 0.2);
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      position: relative;
-      overflow: hidden;
-
-      &::before {
-        content: '';
-        position: absolute;
-        left: 0;
-        top: 0;
-        bottom: 0;
-        width: 4px;
-        background: linear-gradient(135deg, #667eea, #764ba2);
-      }
-
-      &:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.2);
-        background: linear-gradient(135deg, rgba(102, 126, 234, 0.08), rgba(118, 75, 162, 0.08));
-        border-color: rgba(102, 126, 234, 0.3);
-      }
+    .team-card {
+      @include glass-card($blur: 10px, $opacity: 0.05);
+      padding: $spacing-md;
+      margin-bottom: $spacing-md;
+      background: white;
 
       .team-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 15px;
+        margin-bottom: $spacing-sm;
 
-        h3 {
-          margin: 0;
-          font-size: 1.4em;
-          font-weight: 600;
-          background: linear-gradient(135deg, #333, #555);
-          background-clip: text;
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
+        .team-name {
+          font-size: 1.3rem;
+          font-weight: 700;
+          color: $text-dark;
         }
 
-        .player-count {
-          background: linear-gradient(135deg, #667eea, #764ba2);
-          color: white;
-          padding: 6px 16px;
-          border-radius: 20px;
-          font-size: 0.9em;
-          font-weight: 600;
-          box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+        .budget {
+          color: $success-light;
+          font-weight: 700;
+          font-size: 1.2rem;
         }
       }
 
       .team-stats {
-        .stat {
+        display: flex;
+        gap: $spacing-md;
+        font-size: 0.9rem;
+        color: #666;
+
+        span {
           display: flex;
-          justify-content: space-between;
           align-items: center;
-          padding: 8px 0;
-          border-bottom: 1px solid rgba(102, 126, 234, 0.1);
-
-          &:last-child {
-            border-bottom: none;
-          }
-
-          .stat-label {
-            color: #555;
-            font-size: 1em;
-            font-weight: 500;
-          }
-
-          .stat-value {
-            font-weight: 700;
-            font-size: 1.2em;
-
-            &.budget {
-              background: linear-gradient(135deg, #28a745, #20c997);
-              background-clip: text;
-              -webkit-background-clip: text;
-              -webkit-text-fill-color: transparent;
-            }
-          }
+          gap: $spacing-xs;
         }
       }
     }
+  }
 
-    .no-teams {
-      text-align: center;
-      padding: 50px 20px;
-      color: #666;
-      font-size: 1.1em;
-      font-style: italic;
+  // Activity Feed
+  .activity-feed {
+    max-height: 400px;
+    overflow-y: auto;
+
+    .activity-item {
+      padding: $spacing-md;
+      border-left: 4px solid $info-color;
+      background: rgba($info-color, 0.05);
+      border-radius: $radius-sm;
+      margin-bottom: $spacing-sm;
+      animation: slideIn 0.3s ease;
+
+      .activity-time {
+        font-size: 0.8rem;
+        color: #999;
+        margin-bottom: $spacing-xs;
+      }
+
+      .activity-message {
+        color: $text-dark;
+        font-weight: 500;
+      }
+
+      &.sold {
+        border-left-color: $success-color;
+        background: rgba($success-color, 0.05);
+      }
+
+      &.bid {
+        border-left-color: $warning-color;
+        background: rgba($warning-color, 0.05);
+      }
     }
   }
-}
 
-// Responsive Design
-@media (max-width: 768px) {
-  .public-viewer-container {
-    padding: 15px;
+  // Responsive
+  @include mobile {
+    padding: $spacing-md;
 
     .header {
-      margin-bottom: 20px;
-      padding: 15px;
+      flex-direction: column;
+      gap: $spacing-md;
+      text-align: center;
 
       h1 {
-        font-size: 2.2em;
-      }
-
-      .subtitle {
-        font-size: 1em;
+        font-size: 2rem;
       }
     }
-  }
 
-  section {
-    padding: 20px;
-    margin-bottom: 20px;
-  }
-
-  .bidding-card .bid-info {
-    grid-template-columns: 1fr;
-    gap: 15px;
-  }
-
-  .player-card .player-content .player-header {
-    flex-direction: column;
-    gap: 15px;
-    text-align: center;
-
-    .player-info {
+    .timer-section {
       flex-direction: column;
-      gap: 15px;
-    }
-  }
 
-  .timer-card .timer-display {
-    padding: 25px;
-
-    .timer-value {
-      font-size: 4em;
-    }
-
-    .timer-unit {
-      font-size: 1.1em;
-    }
-  }
-
-  .activity-card {
-    max-height: 350px;
-
-    .activity-list {
-      max-height: 270px;
-    }
-  }
-
-  .teams-card .teams-list {
-    gap: 15px;
-
-    .team-item {
-      padding: 15px;
-
-      .team-header h3 {
-        font-size: 1.2em;
+      .timer-display {
+        font-size: 3rem;
       }
     }
-  }
-}
 
-@keyframes pulse-connected {
-  0%, 100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.8;
-    transform: scale(1.02);
-  }
-}
-
-@keyframes pulseUrgent {
-  0%, 100% {
-    transform: scale(1);
-    opacity: 1;
-    box-shadow: 0 8px 32px rgba(220, 53, 69, 0.4);
-  }
-  50% {
-    transform: scale(1.02);
-    opacity: 0.9;
-    box-shadow: 0 12px 40px rgba(220, 53, 69, 0.6);
+    .bidding-section .current-bid .bid-amount {
+      font-size: 3rem;
+    }
   }
 }
