@@ -148,4 +148,9 @@ export class AuctionService {
   clearLastSale(): void {
     this.lastSale.set(null);
   }
+
+  // Get current bid increment from backend
+  getBidIncrement(): Observable<{ bidIncrement: number }> {
+    return this.http.get<{ bidIncrement: number }>(`${this.apiUrl}/bid-increment`);
+  }
 }

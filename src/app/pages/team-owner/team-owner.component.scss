@@ -541,6 +541,140 @@
   50% { transform: translateY(-3px); }
 }
 
+// Multiple Bid Increment Styles
+.bid-increment-display {
+  text-align: center;
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 1rem;
+  padding: 8px 16px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+}
+
+.bid-buttons-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+
+  @media (min-width: 600px) {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.bid-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.bid-amount {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #00d4ff;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.bid-btn {
+  width: 100%;
+  background: linear-gradient(135deg, #10b981, #059669, #047857);
+  border: 3px solid #34d399;
+  border-radius: 16px;
+  padding: 1.2rem 1rem;
+  color: #000;
+  font-weight: 800;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4), 
+              0 0 0 0 rgba(16, 185, 129, 0.7),
+              inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  min-height: 80px;
+
+  .btn-icon {
+    font-size: 1.2rem;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+  }
+
+  .increment-label {
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+  }
+
+  .increment-amount {
+    font-size: 0.9rem;
+    font-weight: 600;
+    opacity: 0.9;
+  }
+
+  &:hover:not(:disabled) {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 12px 25px rgba(16, 185, 129, 0.6), 
+                0 0 0 8px rgba(16, 185, 129, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    border-color: #6ee7b7;
+    background: linear-gradient(135deg, #34d399, #10b981, #059669);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(-1px) scale(1.01);
+    box-shadow: 0 8px 15px rgba(16, 185, 129, 0.5);
+  }
+
+  &.too-expensive {
+    background: rgba(156, 163, 175, 0.3);
+    color: rgba(255, 255, 255, 0.5);
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+    border-color: rgba(156, 163, 175, 0.3);
+
+    .btn-icon, .increment-label, .increment-amount {
+      opacity: 0.5;
+    }
+  }
+
+  &:disabled {
+    background: rgba(156, 163, 175, 0.3);
+    color: rgba(255, 255, 255, 0.5);
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+    border-color: rgba(156, 163, 175, 0.3);
+  }
+}
+
+.budget-preview {
+  text-align: center;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.8);
+  padding: 8px 16px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+
+  .budget-label {
+    margin-right: 8px;
+  }
+
+  .budget-amount {
+    font-weight: 600;
+    color: #4ade80;
+  }
+}
+
 // Team Players Section
 .team-players-section {
   margin: 2rem;

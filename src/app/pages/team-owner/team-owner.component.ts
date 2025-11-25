@@ -11,6 +11,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { WebsocketService } from '../../services/websocket.service';
 import { TeamsService } from '../../services/teams.service';
+import { AuctionService } from '../../services/auction.service';
 import { Subscription } from 'rxjs';
 import { Player } from '../../models/player.model';
 import { Team } from '../../models/team.model';
@@ -26,6 +27,7 @@ export class TeamOwnerComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private teamsService = inject(TeamsService);
+  private auctionService = inject(AuctionService);
 
   // Team information (loaded from route and API)
   teamId = signal<string>('');
@@ -43,20 +45,29 @@ export class TeamOwnerComponent implements OnInit, OnDestroy {
   timer = signal<number>(0);
   isRunning = signal<boolean>(false);
   lastSoldInfo = signal<string>(''); // Track last sold player info
+  baseBidIncrement = signal<number>(1); // Dynamic increment from backend
 
   // Computed signals
   isHighestBidder = computed(() => {
     return this.highestBidderTeamId() === this.teamId();
   });
 
-  // Bid increment must be $1 to match backend validation
+  // Dynamic bid increment from backend
   bidIncrement = computed(() => {
-    return 1; // Backend expects exactly +$1 increments
+    return this.baseBidIncrement();
   });
+
+  // Multiple increment options
+  incrementMultipliers = [1, 2, 3, 5]; // 1x, 2x, 3x, 5x increments
 
   nextBidAmount = computed(() => {
     return this.highestBid() + this.bidIncrement();
   });
+
+  // Calculate bid amounts for each multiplier
+  getBidAmountForMultiplier(multiplier: number): number {
+    return this.highestBid() + (this.bidIncrement() * multiplier);
+  }
 
   canBid = computed(() => {
     return (
@@ -67,6 +78,18 @@ export class TeamOwnerComponent implements OnInit, OnDestroy {
       this.timer() > 0
     );
   });
+
+  // Check if specific multiplier bid is affordable
+  canBidWithMultiplier(multiplier: number): boolean {
+    const bidAmount = this.getBidAmountForMultiplier(multiplier);
+    return (
+      this.wsService.connected() &&
+      this.isRunning() &&
+      !this.isHighestBidder() &&
+      bidAmount <= this.budget() &&
+      this.timer() > 0
+    );
+  }
 
   remainingBudget = computed(() => {
     return this.budget() - this.nextBidAmount();
@@ -93,6 +116,9 @@ export class TeamOwnerComponent implements OnInit, OnDestroy {
     this.loadTeamData(teamIdFromRoute);
 
     this.loadPlayersByTeam(teamIdFromRoute);
+
+    // Load bid increment from backend
+    this.loadBidIncrement();
 
     // Connect to WebSocket
     this.wsService.connect();
@@ -229,6 +255,22 @@ export class TeamOwnerComponent implements OnInit, OnDestroy {
     });
   }
 
+  /**
+   * Load bid increment from backend
+   */
+  private loadBidIncrement(): void {
+    this.auctionService.getBidIncrement().subscribe({
+      next: (response) => {
+        this.baseBidIncrement.set(response.bidIncrement);
+        console.log(`Loaded bid increment: $${response.bidIncrement}`);
+      },
+      error: (err) => {
+        console.error('Failed to load bid increment, using default:', err);
+        this.baseBidIncrement.set(1); // Fallback to $1
+      },
+    });
+  }
+
   ngOnDestroy(): void {
     // Clean up subscriptions
     this.subscriptions.forEach((sub) => sub.unsubscribe());
@@ -272,27 +314,33 @@ export class TeamOwnerComponent implements OnInit, OnDestroy {
 
   /**
    * Place a bid for the current player
+   * @param multiplier - How many increments to bid (default: 1)
    */
-  placeBid(): void {
-    console.log('🎯 Attempting to place bid...');
+  placeBid(multiplier: number = 1): void {
+    console.log(`🎯 Attempting to place bid with ${multiplier}x increment...`);
+    
+    const bidAmount = this.getBidAmountForMultiplier(multiplier);
+    
     console.log('📊 Current state:', {
-      canBid: this.canBid(),
+      canBid: this.canBidWithMultiplier(multiplier),
       isRunning: this.isRunning(),
       timer: this.timer(),
       currentPlayer: this.currentPlayer(),
       highestBid: this.highestBid(),
+      proposedBid: bidAmount,
       budget: this.budget(),
-      isConnected: this.wsService.connected()
+      isConnected: this.wsService.connected(),
+      multiplier: multiplier
     });
 
-    if (!this.canBid()) {
+    if (!this.canBidWithMultiplier(multiplier)) {
       console.warn('❌ Cannot place bid at this time. Reasons:');
       console.warn('  - Connected:', this.wsService.connected());
       console.warn('  - Auction running:', this.isRunning());
       console.warn('  - Timer > 0:', this.timer() > 0);
       console.warn('  - Not highest bidder:', !this.isHighestBidder());
-      console.warn('  - Can afford bid:', this.nextBidAmount() <= this.budget());
-      alert('❌ Cannot place bid at this time. Check auction status.');
+      console.warn('  - Can afford bid:', bidAmount <= this.budget());
+      alert('❌ Cannot place bid at this time. Check auction status or budget.');
       return;
     }
 
@@ -305,12 +353,12 @@ export class TeamOwnerComponent implements OnInit, OnDestroy {
     }
 
     const playerId = currentPlayer._id;
-    const bidAmount = this.nextBidAmount();
+    const remainingBudget = this.budget() - bidAmount;
     
-    console.log(`🚀 Placing bid: Team ${this.teamId()}, Player ${playerId} (${currentPlayer.name}), Amount $${bidAmount}`);
+    console.log(`🚀 Placing bid: Team ${this.teamId()}, Player ${playerId} (${currentPlayer.name}), Amount $${bidAmount} (${multiplier}x increment)`);
 
     // Show immediate feedback
-    const confirmMessage = `Place bid of $${bidAmount} for ${currentPlayer.name}?\n\nThis will leave you with $${this.remainingBudget()} remaining budget.`;
+    const confirmMessage = `Place bid of $${bidAmount} for ${currentPlayer.name}?\n(${multiplier}x increment = $${this.bidIncrement() * multiplier})\n\nThis will leave you with $${remainingBudget} remaining budget.`;
     
     if (!confirm(confirmMessage)) {
       console.log('🚫 Bid cancelled by user');

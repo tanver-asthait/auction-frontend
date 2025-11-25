@@ -123,13 +123,38 @@
             <!-- Bid Controls -->
             <div class="bid-controls">
               @if (canBid()) {
-                <div class="next-bid-amount">
-                  Next Bid: ${{ nextBidAmount() }}
+                <div class="next-bid-info">
+                  <div class="bid-increment-display">
+                    Base Increment: ${{ bidIncrement() }}
+                  </div>
                 </div>
-                <button class="bid-btn" (click)="placeBid()">
-                  <span class="btn-icon">🔥</span>
-                  Place Bid
-                </button>
+                
+                <!-- Multiple Increment Buttons -->
+                <div class="bid-buttons-grid">
+                  @for (multiplier of incrementMultipliers; track multiplier) {
+                    <div class="bid-option">
+                      <div class="bid-amount">
+                        ${{ getBidAmountForMultiplier(multiplier) }}
+                      </div>
+                      <button 
+                        class="bid-btn"
+                        [class.affordable]="canBidWithMultiplier(multiplier)"
+                        [class.too-expensive]="!canBidWithMultiplier(multiplier)"
+                        [disabled]="!canBidWithMultiplier(multiplier)"
+                        (click)="placeBid(multiplier)">
+                        <span class="btn-icon">🔥</span>
+                        <span class="increment-label">+{{ multiplier }}x</span>
+                        <span class="increment-amount">${{ bidIncrement() * multiplier }}</span>
+                      </button>
+                    </div>
+                  }
+                </div>
+                
+                <!-- Remaining Budget Info -->
+                <div class="budget-preview">
+                  <span class="budget-label">After minimum bid:</span>
+                  <span class="budget-amount">${{ budget() - nextBidAmount() }}</span>
+                </div>
               } @else {
                 <div class="bid-disabled-info">
                   @if (!wsService.connected()) {
