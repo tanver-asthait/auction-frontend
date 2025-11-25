@@ -43,6 +43,14 @@
         <span class="btn-icon">⏭️</span>
         Next Player
       </button>
+
+      <button class="control-btn reset-btn"
+              (click)="resetAllPlayers()"
+              [disabled]="!wsService.connected() || playersService.loading()"
+              title="Reset all players to pending status">
+        <span class="btn-icon">🔄</span>
+        {{ playersService.loading() ? 'Resetting...' : 'Reset Players' }}
+      </button>
     </div>
   </div>
 

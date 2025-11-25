@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { WebsocketService } from '../../services/websocket.service';
+import { PlayersService } from '../../services/players.service';
 import { Subscription, interval } from 'rxjs';
 import { Player, PlayerStatus } from '../../models/player.model';
 import { Team } from '../../models/team.model';
@@ -44,7 +45,11 @@ export class AdminComponent implements OnInit, OnDestroy {
   private subscriptions: Subscription[] = [];
   private clockInterval?: any;
 
-  constructor(public wsService: WebsocketService, private http: HttpClient) {}
+  constructor(
+    public wsService: WebsocketService, 
+    private http: HttpClient,
+    public playersService: PlayersService
+  ) {}
 
   ngOnInit(): void {
     // Connect to WebSocket
@@ -341,5 +346,44 @@ export class AdminComponent implements OnInit, OnDestroy {
     }
     console.log('🔨 Selling player:', currentPlayerId);
     this.wsService.sellPlayer(currentPlayerId);
+  }
+
+  /**
+   * Reset all players to pending status - useful for restarting auction
+   */
+  resetAllPlayers(): void {
+    const confirmed = confirm(
+      '🔄 Reset All Players to Pending?\n\n' +
+      'This will:\n' +
+      '• Set all players to PENDING status\n' +
+      '• Clear all team assignments\n' +
+      '• Reset all purchase prices\n' +
+      '• Allow them to be auctioned again\n\n' +
+      'Are you sure you want to proceed?'
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    console.log('🔄 Resetting all players to pending status...');
+    
+    this.playersService.resetAllPlayersToPending().subscribe({
+      next: (response) => {
+        console.log('✅ Reset successful:', response);
+        alert(`✅ Successfully reset ${response.updatedCount} players to pending status!`);
+        
+        // Refresh the admin data
+        this.loadTeams();
+        this.loadPlayerStats();
+        
+        // Request current auction state to update UI
+        this.wsService.requestCurrentState();
+      },
+      error: (error) => {
+        console.error('❌ Failed to reset players:', error);
+        alert('❌ Failed to reset players. Please try again.');
+      }
+    });
   }
 }

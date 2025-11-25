@@ -199,4 +199,91 @@
       </details> -->
     </div>
   }
+
+  <!-- Team Players Section -->
+  <div class="team-players-section">
+    <div class="section-header">
+      <h3 class="section-title">
+        <span class="section-icon">🏆</span>
+        My Team Players
+      </h3>
+      <div class="players-count">
+        {{ playersByTeam().length }} Players
+      </div>
+    </div>
+
+    <div class="players-table-container">
+      @if (playersByTeam().length > 0) {
+        <div class="players-table">
+          <div class="table-header">
+            <div class="header-cell image-cell">Photo</div>
+            <div class="header-cell name-cell">Name</div>
+            <div class="header-cell position-cell">Position</div>
+            <div class="header-cell price-cell">Purchase Price</div>
+            <div class="header-cell status-cell">Status</div>
+          </div>
+          
+          <div class="table-body">
+            @for (player of playersByTeam(); track player._id) {
+              <div class="table-row" 
+                   [class.current-auction]="currentPlayer()?._id === player._id">
+                <div class="table-cell image-cell">
+                  <div class="player-avatar">
+                    @if (player.image) {
+                      <img [src]="player.image" [alt]="player.name" />
+                    } @else {
+                      <div class="avatar-placeholder">
+                        {{ player.name.charAt(0).toUpperCase() }}
+                      </div>
+                    }
+                  </div>
+                </div>
+                
+                <div class="table-cell name-cell">
+                  <div class="player-name">{{ player.name }}</div>
+                </div>
+                
+                <div class="table-cell position-cell">
+                  <div class="positions-wrapper">
+                    @for (position of getPositionArray(player.position); track position) {
+                      <span class="position-tag" 
+                            [class]="'position-' + position.toLowerCase().replace(' ', '-')">
+                        {{ position }}
+                      </span>
+                    }
+                  </div>
+                </div>
+                
+                <div class="table-cell price-cell">
+                  <div class="price-display">
+                    <span class="price-amount">${{ player.finalPrice || player.basePrice }}</span>
+                    @if (player.finalPrice && player.finalPrice > player.basePrice) {
+                      <span class="price-increase">
+                        +${{ player.finalPrice - player.basePrice }}
+                      </span>
+                    }
+                  </div>
+                </div>
+                
+                <div class="table-cell status-cell">
+                  <span class="status-badge" [class]="'status-' + player.status.toLowerCase()">
+                    {{ player.status }}
+                  </span>
+                  @if (currentPlayer()?._id === player._id) {
+                    <span class="live-indicator">LIVE</span>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      } @else {
+        <div class="no-players">
+          <div class="no-players-icon">👥</div>
+          <h4>No Players Yet</h4>
+          <p>Your team hasn't acquired any players yet. Start bidding in the auction to build your squad!</p>
+        </div>
+      }
+    </div>
+  </div>
 </div>

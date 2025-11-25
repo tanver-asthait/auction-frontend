@@ -33,6 +33,8 @@ export class TeamOwnerComponent implements OnInit, OnDestroy {
   budget = signal<number>(0);
   teamNotFound = signal<boolean>(false);
 
+  playersByTeam = signal<Player[]>([]);
+
   // Auction state signals
   currentPlayer = signal<Player | null>(null);
   highestBid = signal<number>(0);
@@ -89,6 +91,8 @@ export class TeamOwnerComponent implements OnInit, OnDestroy {
 
     // Load team data from API
     this.loadTeamData(teamIdFromRoute);
+
+    this.loadPlayersByTeam(teamIdFromRoute);
 
     // Connect to WebSocket
     this.wsService.connect();
@@ -181,6 +185,7 @@ export class TeamOwnerComponent implements OnInit, OnDestroy {
           const message = `🎉 Congratulations! You won ${sold.playerName} for $${sold.finalPrice}`;
           this.lastSoldInfo.set(message);
           alert(message);
+          this.loadPlayersByTeam(this.teamId());
           // Refresh team data to get updated budget
           this.refreshTeamData();
         } else if (sold.teamName) {
@@ -210,6 +215,18 @@ export class TeamOwnerComponent implements OnInit, OnDestroy {
 
     // Store subscriptions
     this.subscriptions.push(stateSub, timerSub, bidSub, soldSub, errorSub);
+  }
+
+  private loadPlayersByTeam(teamIdFromRoute: string) {
+    this.teamsService.getPlayersByTeam(teamIdFromRoute).subscribe({
+      next: (players: Player[]) => {
+        this.playersByTeam.set(players);
+      },
+      error: (err) => {
+        this.playersByTeam.set([]);
+        console.error('Failed to load players for team:', err);
+      },
+    });
   }
 
   ngOnDestroy(): void {

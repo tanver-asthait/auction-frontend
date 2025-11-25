@@ -9,6 +9,7 @@ import { environment } from '../../environments/environment';
 })
 export class TeamsService {
   private apiUrl = `${environment.apiUrl}/teams`;
+  private apiPlayersUrl = `${environment.apiUrl}/players`;
 
   // Signals for reactive state
   teams = signal<Team[]>([]);
@@ -105,6 +106,22 @@ export class TeamsService {
           if (this.currentTeam()?._id === id) {
             this.currentTeam.set(null);
           }
+          this.loading.set(false);
+          this.error.set(null);
+        },
+        error: (err) => {
+          this.error.set(err.message);
+          this.loading.set(false);
+        },
+      })
+    );
+  }
+
+  getPlayersByTeam(teamId: string): Observable<any> {
+    this.loading.set(true);
+    return this.http.get<any>(`${this.apiPlayersUrl}/team/${teamId}`).pipe(
+      tap({
+        next: (players) => {
           this.loading.set(false);
           this.error.set(null);
         },

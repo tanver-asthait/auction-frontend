@@ -136,4 +136,23 @@ export class PlayersService {
   clearError(): void {
     this.error.set(null);
   }
+
+  // Reset all players to pending status
+  resetAllPlayersToPending(): Observable<{ message: string; updatedCount: number }> {
+    this.loading.set(true);
+    return this.http.post<{ message: string; updatedCount: number }>(`${this.apiUrl}/actions/reset-all`, {}).pipe(
+      tap({
+        next: (response) => {
+          // Refresh players list to reflect the changes
+          this.getAllPlayers().subscribe();
+          this.loading.set(false);
+          this.error.set(null);
+        },
+        error: (err) => {
+          this.error.set(err.message || 'Failed to reset players');
+          this.loading.set(false);
+        },
+      })
+    );
+  }
 }
