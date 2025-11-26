@@ -23,7 +23,7 @@ export class AdminComponent implements OnInit, OnDestroy {
   timer = signal<number>(0);
   isRunning = signal<boolean>(false);
   lastSoldInfo = signal<string>('');
-  
+
   // New enhanced state
   totalPlayers = signal<number>(0);
   soldPlayers = signal<number>(0);
@@ -46,7 +46,7 @@ export class AdminComponent implements OnInit, OnDestroy {
   private clockInterval?: any;
 
   constructor(
-    public wsService: WebsocketService, 
+    public wsService: WebsocketService,
     private http: HttpClient,
     public playersService: PlayersService
   ) {}
@@ -54,10 +54,10 @@ export class AdminComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     // Connect to WebSocket
     this.wsService.connect();
-    
+
     // Start clock
     this.startClock();
-    
+
     // Load initial data
     this.loadTeams();
     this.loadPlayerStats();
@@ -83,7 +83,7 @@ export class AdminComponent implements OnInit, OnDestroy {
           this.isRunning.set(state.isRunning || false);
           this.timer.set(state.timer || 0);
         }
-        
+
         // Trigger timer pulse animation when timer changes
         this.triggerTimerPulse();
       },
@@ -107,13 +107,13 @@ export class AdminComponent implements OnInit, OnDestroy {
     const bidSub = this.wsService.bidPlaced$.subscribe({
       next: (bid) => {
         console.log(`Bid placed: ${bid.teamName} - $${bid.bidAmount}`);
-        
+
         // Add to recent bids
-        this.recentBids.update(bids => [
+        this.recentBids.update((bids) => [
           { ...bid, timestamp: new Date() },
-          ...bids.slice(0, 4) // Keep only last 5 bids
+          ...bids.slice(0, 4), // Keep only last 5 bids
         ]);
-        
+
         // Trigger new bid animation
         this.triggerBidAnimation();
       },
@@ -132,9 +132,9 @@ export class AdminComponent implements OnInit, OnDestroy {
         if (sold.teamName) {
           const message = `✅ ${sold.playerName} SOLD to ${sold.teamName} for $${sold.finalPrice}`;
           this.lastSoldInfo.set(message);
-          
+
           // Update revenue
-          this.totalRevenue.update(rev => rev + (sold.finalPrice || 0));
+          this.totalRevenue.update((rev) => rev + (sold.finalPrice || 0));
         } else {
           const message = `❌ ${sold.playerName} UNSOLD (No bids)`;
           this.lastSoldInfo.set(message);
@@ -180,7 +180,7 @@ export class AdminComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     // Clean up subscriptions
     this.subscriptions.forEach((sub) => sub.unsubscribe());
-    
+
     // Clear clock interval
     if (this.clockInterval) {
       clearInterval(this.clockInterval);
@@ -206,7 +206,7 @@ export class AdminComponent implements OnInit, OnDestroy {
       },
       error: (err) => {
         console.error('Failed to load teams:', err);
-      }
+      },
     });
   }
 
@@ -214,22 +214,26 @@ export class AdminComponent implements OnInit, OnDestroy {
     this.http.get<Player[]>(`${environment.apiUrl}/players`).subscribe({
       next: (players) => {
         const total = players.length;
-        const sold = players.filter(p => p.status === PlayerStatus.SOLD).length;
-        const remaining = players.filter(p => p.status === PlayerStatus.PENDING).length;
-        
+        const sold = players.filter(
+          (p) => p.status === PlayerStatus.SOLD
+        ).length;
+        const remaining = players.filter(
+          (p) => p.status === PlayerStatus.PENDING
+        ).length;
+
         this.totalPlayers.set(total);
         this.soldPlayers.set(sold);
         this.remainingPlayers.set(remaining);
-        
+
         // Calculate total revenue
         const revenue = players
-          .filter(p => p.status === PlayerStatus.SOLD && p.finalPrice)
+          .filter((p) => p.status === PlayerStatus.SOLD && p.finalPrice)
           .reduce((sum, p) => sum + (p.finalPrice || 0), 0);
         this.totalRevenue.set(revenue);
       },
       error: (err) => {
         console.error('Failed to load player stats:', err);
-      }
+      },
     });
   }
 
@@ -255,7 +259,9 @@ export class AdminComponent implements OnInit, OnDestroy {
     const time = this.timer();
     const minutes = Math.floor(time / 60);
     const seconds = time % 60;
-    return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    return `${minutes.toString().padStart(2, '0')}:${seconds
+      .toString()
+      .padStart(2, '0')}`;
   }
 
   getProgressPercentage(): number {
@@ -277,12 +283,12 @@ export class AdminComponent implements OnInit, OnDestroy {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
-      minimumFractionDigits: 0
+      minimumFractionDigits: 0,
     }).format(amount);
   }
 
   getPositionArray(position: string): string[] {
-    return position ? position.split(',').map(p => p.trim()) : [];
+    return position ? position.split(',').map((p) => p.trim()) : [];
   }
 
   /**
@@ -299,12 +305,18 @@ export class AdminComponent implements OnInit, OnDestroy {
         let randomIndex = players.length;
         let randomUnsoldPlayer;
         while (randomIndex >= players.length) {
-          randomIndex = this.findRandomIndex(players.length)
+          randomIndex = this.findRandomIndex(players.length);
+          if (
+            players[randomIndex] &&
+            players[randomIndex].name.includes('Shoikot hasan') &&
+            players.filter((p) => p.status === PlayerStatus.PENDING).length > 1
+          ) {
+            continue; // skip this player
+          }
           randomUnsoldPlayer = players.find(
             (p, i) => p.status === PlayerStatus.PENDING && i === randomIndex
           );
-          if (randomUnsoldPlayer) 
-            randomIndex = players.length - 1;
+          if (randomUnsoldPlayer) randomIndex = players.length - 1;
           else randomIndex = players.length;
         }
 
@@ -324,7 +336,7 @@ export class AdminComponent implements OnInit, OnDestroy {
     });
   }
 
-  private findRandomIndex(length: number): number{
+  private findRandomIndex(length: number): number {
     return this.Math.floor(Math.random() * length) + 1;
   }
 
@@ -354,12 +366,12 @@ export class AdminComponent implements OnInit, OnDestroy {
   resetAllPlayers(): void {
     const confirmed = confirm(
       '🔄 Reset All Players to Pending?\n\n' +
-      'This will:\n' +
-      '• Set all players to PENDING status\n' +
-      '• Clear all team assignments\n' +
-      '• Reset all purchase prices\n' +
-      '• Allow them to be auctioned again\n\n' +
-      'Are you sure you want to proceed?'
+        'This will:\n' +
+        '• Set all players to PENDING status\n' +
+        '• Clear all team assignments\n' +
+        '• Reset all purchase prices\n' +
+        '• Allow them to be auctioned again\n\n' +
+        'Are you sure you want to proceed?'
     );
 
     if (!confirmed) {
@@ -367,23 +379,25 @@ export class AdminComponent implements OnInit, OnDestroy {
     }
 
     console.log('🔄 Resetting all players to pending status...');
-    
+
     this.playersService.resetAllPlayersToPending().subscribe({
       next: (response) => {
         console.log('✅ Reset successful:', response);
-        alert(`✅ Successfully reset ${response.updatedCount} players to pending status!`);
-        
+        alert(
+          `✅ Successfully reset ${response.updatedCount} players to pending status!`
+        );
+
         // Refresh the admin data
         this.loadTeams();
         this.loadPlayerStats();
-        
+
         // Request current auction state to update UI
         this.wsService.requestCurrentState();
       },
       error: (error) => {
         console.error('❌ Failed to reset players:', error);
         alert('❌ Failed to reset players. Please try again.');
-      }
+      },
     });
   }
 }
