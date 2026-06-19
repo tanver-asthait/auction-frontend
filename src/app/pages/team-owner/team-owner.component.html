@@ -31,6 +31,14 @@
           </div>
         </div>
         <div class="header-status">
+          <!-- Sound Toggle -->
+          <button class="sound-toggle-btn" 
+                  (click)="soundService.toggleSound()"
+                  [title]="soundService.soundEnabled() ? 'Mute Sounds' : 'Unmute Sounds'"
+                  style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 50%; width: 38px; height: 38px; font-size: 1.1rem; display: inline-flex; justify-content: center; align-items: center; cursor: pointer; color: white; transition: all 0.2s; margin-right: 8px;">
+            {{ soundService.soundEnabled() ? '🔊' : '🔇' }}
+          </button>
+
           <div class="connection-indicator" [class.connected]="wsService.connected()" [class.disconnected]="!wsService.connected()">
             <span class="status-dot"></span>
             {{ wsService.connected() ? 'LIVE' : 'OFFLINE' }}
@@ -220,8 +228,14 @@
               Request Current State
             </button>
           </div>
-        </div>
-      </details> -->
+    <!-- Floating Emoji Reaction Selector Bar -->
+    <div class="emoji-reaction-bar" *ngIf="wsService.connected()">
+      <button class="emoji-btn" (click)="sendReaction('🔥')" title="Send Fire Reaction">🔥</button>
+      <button class="emoji-btn" (click)="sendReaction('😂')" title="Send Laugh Reaction">😂</button>
+      <button class="emoji-btn" (click)="sendReaction('😮')" title="Send Wow Reaction">😮</button>
+      <button class="emoji-btn" (click)="sendReaction('💸')" title="Send Money Reaction">💸</button>
+      <button class="emoji-btn" (click)="sendReaction('🍿')" title="Send Popcorn Reaction">🍿</button>
+    </div>
     </div>
   }
 

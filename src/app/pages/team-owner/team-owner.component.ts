@@ -15,6 +15,8 @@ import { AuctionService } from '../../services/auction.service';
 import { Subscription } from 'rxjs';
 import { Player } from '../../models/player.model';
 import { Team } from '../../models/team.model';
+import { SoundService } from '../../services/sound.service';
+import { CelebrationService } from '../../services/celebration.service';
 
 @Component({
   selector: 'app-team-owner',
@@ -98,7 +100,11 @@ export class TeamOwnerComponent implements OnInit, OnDestroy {
   // Subscriptions
   private subscriptions: Subscription[] = [];
 
-  constructor(public wsService: WebsocketService) {}
+  constructor(
+    public wsService: WebsocketService,
+    public soundService: SoundService,
+    public celebrationService: CelebrationService
+  ) {}
 
   ngOnInit(): void {
     // Get team ID from route parameter
@@ -177,7 +183,17 @@ export class TeamOwnerComponent implements OnInit, OnDestroy {
     // Listen to timer updates
     const timerSub = this.wsService.listenToTimer().subscribe({
       next: (timerUpdate) => {
+        const prevTimer = this.timer();
         this.timer.set(timerUpdate.timer);
+
+        // Sound triggers
+        if (this.isRunning() && timerUpdate.timer !== prevTimer) {
+          if (timerUpdate.timer <= 10) {
+            this.soundService.playUrgentTick();
+          } else {
+            this.soundService.playTick();
+          }
+        }
       },
       error: (err) => {
         console.error('Timer subscription error:', err);
@@ -188,6 +204,10 @@ export class TeamOwnerComponent implements OnInit, OnDestroy {
     const bidSub = this.wsService.bidPlaced$.subscribe({
       next: (bid) => {
         console.log(`Bid placed: ${bid.teamName} - $${bid.bidAmount}`);
+
+        // Sound and bidding war triggers
+        this.soundService.playChime();
+        this.celebrationService.triggerBiddingWar();
 
         // If this team placed the bid, show feedback
         if (bid.teamId === this.teamId()) {
@@ -205,23 +225,37 @@ export class TeamOwnerComponent implements OnInit, OnDestroy {
           } for $${sold.finalPrice}`
         );
 
+        // Reset bidding war indicator
+        this.celebrationService.stopBiddingWar();
+
         // Update UI with sold information
         if (sold.teamId === this.teamId()) {
-          // This team won the player
-          const message = `🎉 Congratulations! You won ${sold.playerName} for $${sold.finalPrice}`;
-          this.lastSoldInfo.set(message);
-          alert(message);
+          // This team won the player! Confetti, fanfare, gavel hit, gavel overlay.
+          const message = `Congratulations! You won ${sold.playerName} for $${sold.finalPrice}`;
+          this.lastSoldInfo.set(`🎉 ` + message);
+          
+          this.soundService.playGavel();
+          setTimeout(() => this.soundService.playSoldFanfare(), 850);
+          this.celebrationService.triggerConfetti();
+          this.celebrationService.triggerGavel(`You won ${sold.playerName} for $${sold.finalPrice}!`);
+          
           this.loadPlayersByTeam(this.teamId());
           // Refresh team data to get updated budget
           this.refreshTeamData();
         } else if (sold.teamName) {
-          // Another team won
+          // Another team won. Gavel hit and gavel overlay.
           const message = `${sold.playerName} sold to ${sold.teamName} for $${sold.finalPrice}`;
           this.lastSoldInfo.set(message);
+
+          this.soundService.playGavel();
+          this.celebrationService.triggerGavel(message);
         } else {
-          // No one won (unsold)
+          // No one won (unsold). Gavel hit and gavel overlay.
           const message = `${sold.playerName} went unsold (No bids)`;
           this.lastSoldInfo.set(message);
+
+          this.soundService.playGavel();
+          this.celebrationService.triggerGavel(message);
         }
 
         // Clear the sold info after 10 seconds
@@ -235,6 +269,7 @@ export class TeamOwnerComponent implements OnInit, OnDestroy {
     const errorSub = this.wsService.auctionError$.subscribe({
       next: (error) => {
         console.error('❌ Auction error:', error);
+        this.soundService.playError();
         alert(`Error: ${error.message}`);
       },
     });
@@ -384,5 +419,13 @@ export class TeamOwnerComponent implements OnInit, OnDestroy {
   requestCurrentState(): void {
     console.log('🔄 Requesting current auction state...');
     this.wsService.requestCurrentState();
+  }
+
+  /**
+   * Send floating emoji reaction from team owner dashboard
+   */
+  sendReaction(emoji: string): void {
+    const sender = this.teamName() || 'Team Owner';
+    this.wsService.sendReaction(emoji, sender);
   }
 }

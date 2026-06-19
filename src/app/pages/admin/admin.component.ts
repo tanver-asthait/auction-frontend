@@ -7,6 +7,8 @@ import { Subscription, interval } from 'rxjs';
 import { Player, PlayerStatus } from '../../models/player.model';
 import { Team } from '../../models/team.model';
 import { environment } from '../../../environments/environment';
+import { SoundService } from '../../services/sound.service';
+import { CelebrationService } from '../../services/celebration.service';
 
 @Component({
   selector: 'app-admin',
@@ -48,7 +50,9 @@ export class AdminComponent implements OnInit, OnDestroy {
   constructor(
     public wsService: WebsocketService,
     private http: HttpClient,
-    public playersService: PlayersService
+    public playersService: PlayersService,
+    public soundService: SoundService,
+    public celebrationService: CelebrationService
   ) {}
 
   ngOnInit(): void {
@@ -95,8 +99,18 @@ export class AdminComponent implements OnInit, OnDestroy {
     // Listen to timer updates
     const timerSub = this.wsService.listenToTimer().subscribe({
       next: (timerUpdate) => {
+        const prevTimer = this.timer();
         this.timer.set(timerUpdate.timer);
         this.triggerTimerPulse();
+
+        // Play synchronized tick sounds
+        if (this.isRunning() && timerUpdate.timer !== prevTimer) {
+          if (timerUpdate.timer <= 10) {
+            this.soundService.playUrgentTick();
+          } else {
+            this.soundService.playTick();
+          }
+        }
       },
       error: (err) => {
         console.error('Timer subscription error:', err);
@@ -116,6 +130,10 @@ export class AdminComponent implements OnInit, OnDestroy {
 
         // Trigger new bid animation
         this.triggerBidAnimation();
+
+        // Audio-visual triggers
+        this.soundService.playChime();
+        this.celebrationService.triggerBiddingWar();
       },
     });
 
@@ -128,16 +146,29 @@ export class AdminComponent implements OnInit, OnDestroy {
           } for $${sold.finalPrice}`
         );
 
+        // End active bidding war mode
+        this.celebrationService.stopBiddingWar();
+
         // Update UI with sold information
         if (sold.teamName) {
-          const message = `✅ ${sold.playerName} SOLD to ${sold.teamName} for $${sold.finalPrice}`;
-          this.lastSoldInfo.set(message);
+          const message = `${sold.playerName} SOLD to ${sold.teamName} for $${sold.finalPrice}`;
+          this.lastSoldInfo.set(`✅ ` + message);
 
           // Update revenue
           this.totalRevenue.update((rev) => rev + (sold.finalPrice || 0));
+
+          // Sound triggers and confetti
+          this.soundService.playGavel();
+          setTimeout(() => this.soundService.playSoldFanfare(), 850);
+          this.celebrationService.triggerConfetti();
+          this.celebrationService.triggerGavel(message);
         } else {
-          const message = `❌ ${sold.playerName} UNSOLD (No bids)`;
-          this.lastSoldInfo.set(message);
+          const message = `${sold.playerName} went UNSOLD`;
+          this.lastSoldInfo.set(`❌ ` + message);
+
+          // Sound trigger & gavel slam
+          this.soundService.playGavel();
+          this.celebrationService.triggerGavel(message);
         }
 
         // Refresh stats
@@ -166,6 +197,13 @@ export class AdminComponent implements OnInit, OnDestroy {
       },
     });
 
+    // Listen to errors
+    const errorSub = this.wsService.auctionError$.subscribe({
+      next: () => {
+        this.soundService.playError();
+      }
+    });
+
     // Store subscriptions
     this.subscriptions.push(
       stateSub,
@@ -173,7 +211,8 @@ export class AdminComponent implements OnInit, OnDestroy {
       bidSub,
       soldSub,
       startedSub,
-      endedSub
+      endedSub,
+      errorSub
     );
   }
 
@@ -306,13 +345,6 @@ export class AdminComponent implements OnInit, OnDestroy {
         let randomUnsoldPlayer;
         while (randomIndex >= players.length) {
           randomIndex = this.findRandomIndex(players.length);
-          if (
-            players[randomIndex] &&
-            players[randomIndex].name.includes('Shoikot hasan') &&
-            players.filter((p) => p.status === PlayerStatus.PENDING).length > 1
-          ) {
-            continue; // skip this player
-          }
           randomUnsoldPlayer = players.find(
             (p, i) => p.status === PlayerStatus.PENDING && i === randomIndex
           );

@@ -86,6 +86,16 @@ export class PlayersManagementComponent implements OnInit {
   onFileSelected(event: any): void {
     const file = event.target.files[0];
     if (file) {
+      // 350kB limit to stay safe with the backend's 500kB JSON base64 request limit
+      const maxSizeBytes = 350 * 1024;
+      if (file.size > maxSizeBytes) {
+        alert('❌ Selected image file is too large! Please choose an image smaller than 350kB.');
+        event.target.value = ''; // Clear file input
+        this.selectedImageFile = null;
+        this.imagePreview = null;
+        return;
+      }
+
       this.selectedImageFile = file;
       
       // Create preview

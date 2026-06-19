@@ -1,124 +1,304 @@
-<div class="public-viewer-container">
-  <header class="header">
-    <h1>🏆 Live Auction</h1>
-    <div class="connection-status">
-      @if (wsService.connected()) {
-        <span class="status-badge connected">● LIVE</span>
-      } @else {
-        <span class="status-badge disconnected">● OFFLINE</span>
-      }
+<div class="public-viewer-container" [class.bidding-war]="celebrationService.biddingWarActive()">
+  
+  <!-- Cinematic Stadium Spotlight Effects -->
+  <div class="stadium-spotlight left-beam"></div>
+  <div class="stadium-spotlight right-beam"></div>
+  
+  <!-- Premium Broadcast HUD Header -->
+  <header class="broadcast-header">
+    <div class="logo-area">
+      <div class="broadcast-badge">
+        <span class="live-dot"></span>
+        <span class="live-text">LIVE BROADCAST</span>
+      </div>
+      <h1 class="title">FOOTBALL PLAYER AUCTION</h1>
+    </div>
+    
+    <div class="header-widgets">
+      <!-- Synthesizer FX Controller -->
+      <button class="sound-widget" 
+              (click)="soundService.toggleSound()"
+              [class.muted]="!soundService.soundEnabled()"
+              [title]="soundService.soundEnabled() ? 'Mute Sound Effects' : 'Unmute Sound Effects'">
+        <span class="sound-wave" *ngIf="soundService.soundEnabled()">
+          <span></span><span></span><span></span>
+        </span>
+        <span class="icon">{{ soundService.soundEnabled() ? '🔊' : '🔇' }}</span>
+        <span class="label">AUDIO FX</span>
+      </button>
+
+      <!-- WebSocket Sync Indicator -->
+      <div class="status-widget" [class.online]="wsService.connected()">
+        <span class="status-dot"></span>
+        <span class="status-text">{{ wsService.connected() ? 'SYNCED' : 'OFFLINE' }}</span>
+      </div>
     </div>
   </header>
 
-  <div class="main-content">
-    <!-- Left Column: Current Auction -->
-    <div class="auction-column">
-      <!-- Current Player Card -->
-      <section class="player-card">
-        <h2>Current Player</h2>
-        @if (currentPlayer()) {
-          <div class="player-content">
-            <div class="player-header">
-              <div class="player-info">
-                @if (currentPlayer()!.image) {
-                  <img [src]="currentPlayer()!.image" [alt]="currentPlayer()!.name" class="player-image" />
-                } @else {
-                  <div class="player-placeholder">
-                    {{ currentPlayer()!.name.charAt(0).toUpperCase() }}
-                  </div>
-                }
-                <h3>{{ currentPlayer()!.name }}</h3>
-              </div>
-              <span class="player-position">{{ currentPlayer()!.position }}</span>
+  <!-- Main Broadcast Studio Grid -->
+  <div class="broadcast-grid">
+    
+    <!-- LEFT SIDEBAR: Logs & High Scores -->
+    <div class="sidebar-column left-sidebar">
+      
+      <!-- Record Transfers Card -->
+      <section class="broadcast-card top-transfers-card" *ngIf="topBuys().length > 0">
+        <div class="card-title-header">
+          <span class="indicator-icon">💎</span>
+          <h2>Record Signings</h2>
+        </div>
+        <div class="top-buys-list">
+          <div *ngFor="let player of topBuys(); let i = index" class="top-buy-item" [class]="'rank-' + (i + 1)">
+            <div class="medal-badge">
+              <span class="medal-num">#{{ i + 1 }}</span>
+              <span class="medal-star" *ngIf="i === 0">👑</span>
             </div>
-            <div class="player-details">
-              <div class="detail-item">
-                <span class="label">Base Price:</span>
-                <span class="value">${{ currentPlayer()!.basePrice }}</span>
-              </div>
-              <div class="detail-item">
-                <span class="label">Status:</span>
-                <span class="value status">{{ currentPlayer()!.status }}</span>
-              </div>
+            
+            <div class="player-avatar-frame">
+              @if (player.image) {
+                <img [src]="player.image" [alt]="player.name" />
+              } @else {
+                <div class="mini-jersey">👕</div>
+              }
             </div>
-          </div>
-        } @else {
-          <div class="no-player">
-            <p>No player currently being auctioned</p>
-            <p class="subtitle">Waiting for auction to start...</p>
-          </div>
-        }
-      </section>
 
-      <!-- Bidding Information -->
-      <section class="bidding-card">
-        <h2>Current Bidding</h2>
-        <div class="bid-info">
-          <div class="highest-bid">
-            <span class="label">Highest Bid</span>
-            <span class="amount">${{ highestBid() }}</span>
-          </div>
-          <div class="highest-bidder">
-            <span class="label">Leading Team</span>
-            <span class="team-name">{{ highestBidder() }}</span>
+            <div class="signing-details">
+              <div class="player-name">{{ player.name }}</div>
+              <div class="signing-meta">
+                <span class="price">${{ player.finalPrice }}M</span>
+                <span class="to-text">to</span>
+                <span class="team-name">{{ getTeamName(player.boughtBy) }}</span>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      <!-- Timer -->
-      <section class="timer-card">
-        <h2>Time Remaining</h2>
-        <div class="timer-display" [class.urgent]="timer() <= 5 && timer() > 0">
-          <span class="timer-value">{{ timer() }}</span>
-          <span class="timer-unit">seconds</span>
+      <!-- Live Activity Ticker Card -->
+      <section class="broadcast-card activity-feed-card">
+        <div class="card-title-header">
+          <span class="indicator-icon">📡</span>
+          <h2>Live Telemetry Logs</h2>
         </div>
-        @if (!isRunning()) {
-          <p class="timer-status">Auction Paused</p>
-        }
-      </section>
-
-      <!-- Recent Activity -->
-      <section class="activity-card">
-        <h2>Recent Activity</h2>
-        <div class="activity-list">
+        <div class="activity-feed-list">
           @if (recentActivity().length > 0) {
             @for (activity of recentActivity(); track activity) {
-              <div class="activity-item">{{ activity }}</div>
-            }
-          } @else {
-            <p class="no-activity">No activity yet</p>
-          }
-        </div>
-      </section>
-    </div>
-
-    <!-- Right Column: Teams Summary -->
-    <div class="teams-column">
-      <section class="teams-card">
-        <h2>Teams Overview</h2>
-        <div class="teams-list">
-          @if (teams().length > 0) {
-            @for (team of teams(); track team._id) {
-              <div class="team-item">
-                <div class="team-header">
-                  <h3>{{ team.name }}</h3>
-                  <span class="player-count">{{ getPlayerCount(team) }} players</span>
-                </div>
-                <div class="team-stats">
-                  <div class="stat">
-                    <span class="stat-label">Budget Left:</span>
-                    <span class="stat-value budget">${{ team.budget }}</span>
-                  </div>
-                </div>
+              <div class="log-item" 
+                   [class.log-sold]="activity.includes('SOLD')"
+                   [class.log-bid]="activity.includes('bid')"
+                   [class.log-unsold]="activity.includes('UNSOLD')"
+                   [class.log-start]="activity.includes('started')">
+                
+                <span class="log-badge">
+                  <ng-container *ngIf="activity.includes('SOLD')">🏆 SOLD</ng-container>
+                  <ng-container *ngIf="activity.includes('bid')">💰 BID</ng-container>
+                  <ng-container *ngIf="activity.includes('UNSOLD')">❌ UNSOLD</ng-container>
+                  <ng-container *ngIf="activity.includes('started')">🎬 START</ng-container>
+                  <ng-container *ngIf="!activity.includes('SOLD') && !activity.includes('bid') && !activity.includes('UNSOLD') && !activity.includes('started')">ℹ️ INFO</ng-container>
+                </span>
+                
+                <span class="log-text">{{ activity }}</span>
               </div>
             }
           } @else {
-            <div class="no-teams">
-              <p>No teams available</p>
+            <div class="empty-feed">
+              <span class="icon">🤐</span>
+              <p>Waiting for broadcast signals...</p>
             </div>
           }
         </div>
       </section>
     </div>
+
+    <!-- CENTER STAGE: The Auction Arena -->
+    <div class="center-stage-column">
+      @if (currentPlayer()) {
+        
+        <!-- Live Arena Card -->
+        <div class="broadcast-card arena-card">
+          
+          <!-- Bidding War Banner -->
+          <div class="bidding-war-alert-banner" *ngIf="celebrationService.biddingWarActive()">
+            🔥 ACTIVE BIDDING WAR IN PROGRESS 🔥
+          </div>
+
+          <div class="arena-content-split">
+            
+            <!-- FIFA Ultimate Team Card Showcase -->
+            <div class="fifa-card-container">
+              <div class="fut-card" [class.marquee-fut]="currentPlayer()!.basePrice >= 15">
+                <div class="card-shine"></div>
+                
+                <!-- FUT Card Rating & Position -->
+                <div class="card-meta">
+                  <div class="rating-value">{{ getPlayerStats(currentPlayer()).overall }}</div>
+                  <div class="pos-value">{{ currentPlayer()!.position }}</div>
+                  <div class="divider-line"></div>
+                  <div class="card-logo">⚽</div>
+                </div>
+                
+                <!-- Player Photo or Pure-CSS Jersey -->
+                <div class="player-visual">
+                  @if (currentPlayer()!.image) {
+                    <img [src]="currentPlayer()!.image" [alt]="currentPlayer()!.name" class="player-img" />
+                  } @else {
+                    <div class="css-jersey" [class.gold-jersey]="getPlayerStats(currentPlayer()).overall >= 90">
+                      <div class="jersey-collar"></div>
+                      <div class="jersey-body">
+                        <div class="jersey-stripe s1"></div>
+                        <div class="jersey-stripe s2"></div>
+                        <div class="jersey-stripe s3"></div>
+                        <div class="jersey-number">{{ getJerseyNumber(currentPlayer()!.name) }}</div>
+                      </div>
+                      <div class="jersey-sleeve left-s"></div>
+                      <div class="jersey-sleeve right-s"></div>
+                    </div>
+                  }
+                </div>
+                
+                <!-- Player Info Block -->
+                <div class="card-details">
+                  <h3 class="player-name-fut">{{ currentPlayer()!.name }}</h3>
+                  <div class="player-base-price">Base Value: ${{ currentPlayer()!.basePrice }}M</div>
+                </div>
+
+                <!-- FUT Stats Attributes Grid -->
+                <div class="stats-grid">
+                  <div class="stat-col" *ngFor="let s of getPlayerStats(currentPlayer()).stats">
+                     <span class="stat-num">{{ s.value }}</span>
+                     <span class="stat-lbl">{{ s.label }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Bidding Telemetry HUD -->
+            <div class="hud-panel">
+              
+              <div class="hud-item lead-bid-box">
+                <div class="hud-label">CURRENT LEADING BID</div>
+                <div class="hud-value-glowing">${{ highestBid() }}M</div>
+                
+                <div class="hud-bidder">
+                  @if (highestBidder() !== 'None') {
+                    <span class="crown-icon">👑</span>
+                    <span class="bidder-name">{{ highestBidder() }}</span>
+                  } @else {
+                    <span class="no-bids">NO BIDS PLACED YET</span>
+                  }
+                </div>
+              </div>
+
+              <!-- High-Tech Speedometer Circular Timer -->
+              <div class="timer-speedometer-box" [class.critical]="timer() <= 10 && timer() > 0">
+                <div class="timer-hud-circle">
+                  <span class="seconds-digit">{{ timer() }}</span>
+                  <span class="seconds-unit">SECONDS</span>
+                  <div class="final-call-indicator" *ngIf="timer() <= 10 && timer() > 0">FINAL CALL!</div>
+                </div>
+                <!-- Dynamic SVG Conical Circle to avoid conic-gradient compatibility issues -->
+                <svg class="speedometer-svg" viewBox="0 0 100 100">
+                  <circle class="bg-ring" cx="50" cy="50" r="45"></circle>
+                  <circle class="progress-ring" 
+                          cx="50" 
+                          cy="50" 
+                          r="45"
+                          [style.stroke-dashoffset]="282.7 - (282.7 * (timer() / 60))"></circle>
+                </svg>
+              </div>
+
+            </div>
+          </div>
+          
+          <div class="auction-status-hud-bar" *ngIf="!isRunning()">
+            <span class="paused-indicator">⏸ DRAFT BOARD PAUSED BY AUCTIONEER</span>
+          </div>
+        </div>
+
+      } @else {
+        
+        <!-- Premium Animated Idle Stadium View -->
+        <div class="broadcast-card idle-stadium-card">
+          <div class="stadium-graphic-wrapper">
+            <div class="pitch-layout">
+              <div class="penalty-box top"></div>
+              <div class="center-circle">
+                <div class="soccer-glow-ball">⚽</div>
+              </div>
+              <div class="penalty-box bottom"></div>
+            </div>
+            <div class="draft-board-spotlight"></div>
+          </div>
+          <h2 class="idle-title">STADIUM WAITING FOR PLAYERS</h2>
+          <p class="idle-description">The draft board is currently idle. Bidders, review your rosters and prepare for the next round of selections.</p>
+        </div>
+
+      }
+    </div>
+
+    <!-- RIGHT SIDEBAR: Standings & Leaderboard -->
+    <div class="sidebar-column right-sidebar">
+      
+      <!-- Teams Standings Card -->
+      <section class="broadcast-card teams-standings-card">
+        <div class="card-title-header">
+          <span class="indicator-icon">🏆</span>
+          <h2>Clubs Roster Status</h2>
+        </div>
+        
+        <div class="teams-standings-list">
+          @if (teams().length > 0) {
+            @for (team of teams(); track team._id; let idx = $index) {
+              <div class="standing-club-card" [class.leading-bidder]="highestBidder() === team.name">
+                
+                <div class="club-header">
+                  <div class="club-identity">
+                    <span class="crest-placeholder" [style.background-color]="'hsl(' + (idx * 60) + ', 60%, 45%)'">
+                      {{ team.name.substring(0, 2).toUpperCase() }}
+                    </span>
+                    <span class="club-name-text">{{ team.name }}</span>
+                    <span class="crown-leading" *ngIf="highestBidder() === team.name" title="Current Leading Bidder">👑</span>
+                  </div>
+                  <span class="roster-counter">{{ getPlayerCount(team) }} / 28</span>
+                </div>
+                
+                <div class="club-budget-meters">
+                  <div class="budget-values">
+                    <span class="label">BUDGET TRACK:</span>
+                    <span class="value" 
+                          [class.budget-healthy]="team.budget >= 50" 
+                          [class.budget-warning]="team.budget < 50 && team.budget >= 20" 
+                          [class.budget-critical]="team.budget < 20">${{ team.budget }}M</span>
+                  </div>
+                  <div class="budget-progress-track">
+                    <div class="budget-progress-fill" 
+                         [style.width.%]="team.budget"
+                         [class.healthy]="team.budget >= 50" 
+                         [class.warning]="team.budget < 50 && team.budget >= 20" 
+                         [class.critical]="team.budget < 20"></div>
+                  </div>
+                </div>
+
+              </div>
+            }
+          } @else {
+            <div class="no-teams-placeholder">
+              <p>No registered clubs found on network</p>
+            </div>
+          }
+        </div>
+      </section>
+    </div>
+
   </div>
+
+  <!-- Floating Emoji Reactions Bar -->
+  <div class="floating-emoji-reaction-bar" *ngIf="wsService.connected()">
+    <button class="reaction-btn" (click)="sendReaction('🔥')" title="Fire">🔥</button>
+    <button class="reaction-btn" (click)="sendReaction('😂')" title="Laugh">😂</button>
+    <button class="reaction-btn" (click)="sendReaction('😮')" title="Wow">😮</button>
+    <button class="reaction-btn" (click)="sendReaction('💸')" title="Money">💸</button>
+    <button class="reaction-btn" (click)="sendReaction('🍿')" title="Popcorn">🍿</button>
+  </div>
+
 </div>

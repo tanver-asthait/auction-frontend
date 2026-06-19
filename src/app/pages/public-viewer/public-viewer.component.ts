@@ -5,6 +5,9 @@ import { TeamsService } from '../../services/teams.service';
 import { Subscription } from 'rxjs';
 import { Player } from '../../models/player.model';
 import { Team } from '../../models/team.model';
+import { SoundService } from '../../services/sound.service';
+import { CelebrationService } from '../../services/celebration.service';
+import { PlayersService } from '../../services/players.service';
 
 @Component({
   selector: 'app-public-viewer',
@@ -23,6 +26,7 @@ export class PublicViewerComponent implements OnInit, OnDestroy {
 
   // Teams data signals
   teams = signal<Team[]>([]);
+  topBuys = signal<Player[]>([]);
 
   // Recent activity
   recentActivity = signal<string[]>([]);
@@ -32,7 +36,10 @@ export class PublicViewerComponent implements OnInit, OnDestroy {
 
   constructor(
     public wsService: WebsocketService,
-    private teamsService: TeamsService
+    private teamsService: TeamsService,
+    public soundService: SoundService,
+    public celebrationService: CelebrationService,
+    private playersService: PlayersService
   ) {}
 
   ngOnInit(): void {
@@ -41,6 +48,7 @@ export class PublicViewerComponent implements OnInit, OnDestroy {
 
     // Fetch all teams
     this.loadTeams();
+    this.loadTopBuys();
 
     // Listen to auction state updates
     const stateSub = this.wsService.listenToState().subscribe({
@@ -72,7 +80,17 @@ export class PublicViewerComponent implements OnInit, OnDestroy {
     // Listen to timer updates
     const timerSub = this.wsService.listenToTimer().subscribe({
       next: (timerUpdate) => {
+        const prevTimer = this.timer();
         this.timer.set(timerUpdate.timer);
+        
+        // Play tick sounds
+        if (this.isRunning() && timerUpdate.timer !== prevTimer) {
+          if (timerUpdate.timer <= 10) {
+            this.soundService.playUrgentTick();
+          } else {
+            this.soundService.playTick();
+          }
+        }
       },
       error: (err) => {
         console.error('Timer subscription error:', err);
@@ -94,21 +112,39 @@ export class PublicViewerComponent implements OnInit, OnDestroy {
         this.addActivity(`💰 ${bid.teamName} bid $${bid.bidAmount}`);
         // Refresh teams to update budgets
         this.loadTeams();
+        
+        // Audio-visual triggers
+        this.soundService.playChime();
+        this.celebrationService.triggerBiddingWar();
       },
     });
 
     // Listen to player sold events
     const soldSub = this.wsService.playerSold$.subscribe({
       next: (sold) => {
+        // Reset active bidding war indicator
+        this.celebrationService.stopBiddingWar();
+
         if (sold.teamName) {
-          this.addActivity(
-            `🎉 ${sold.playerName} SOLD to ${sold.teamName} for $${sold.finalPrice}!`
-          );
+          const message = `${sold.playerName} SOLD to ${sold.teamName} for $${sold.finalPrice}!`;
+          this.addActivity(`🎉 ` + message);
+
+          // Audio-visual triggers and confetti
+          this.soundService.playGavel();
+          setTimeout(() => this.soundService.playSoldFanfare(), 850);
+          this.celebrationService.triggerConfetti();
+          this.celebrationService.triggerGavel(message);
         } else {
-          this.addActivity(`❌ ${sold.playerName} UNSOLD`);
+          const message = `${sold.playerName} went UNSOLD`;
+          this.addActivity(`❌ ` + message);
+
+          // Sound trigger & gavel slam overlay
+          this.soundService.playGavel();
+          this.celebrationService.triggerGavel(message);
         }
         // Refresh teams to update budgets and players
         this.loadTeams();
+        this.loadTopBuys();
       },
     });
 
@@ -116,6 +152,7 @@ export class PublicViewerComponent implements OnInit, OnDestroy {
     const endedSub = this.wsService.auctionEnded$.subscribe({
       next: (ended) => {
         this.addActivity(`⏹️ Auction ended for ${ended.playerName}`);
+        this.loadTopBuys();
       },
     });
 
@@ -150,6 +187,24 @@ export class PublicViewerComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Load top buys from API (sold players sorted by final price descending)
+   */
+  loadTopBuys(): void {
+    this.playersService.getAllPlayers().subscribe({
+      next: (players) => {
+        const sold = players
+          .filter((p) => p.status === 'sold' && p.finalPrice)
+          .sort((a, b) => (b.finalPrice || 0) - (a.finalPrice || 0))
+          .slice(0, 3);
+        this.topBuys.set(sold);
+      },
+      error: (err) => {
+        console.error('Failed to load top buys:', err);
+      },
+    });
+  }
+
+  /**
    * Add activity to the recent activity list
    */
   private addActivity(message: string): void {
@@ -168,5 +223,100 @@ export class PublicViewerComponent implements OnInit, OnDestroy {
    */
   getPlayerCount(team: Team): number {
     return team.players?.length || 0;
+  }
+
+  /**
+   * Send reaction from public viewer dashboard
+   */
+  sendReaction(emoji: string): void {
+    this.wsService.sendReaction(emoji, 'Public Viewer');
+  }
+
+  /**
+   * Helper to get team name by its ID
+   */
+  getTeamName(teamId: string | null): string {
+    if (!teamId) return 'N/A';
+    const team = this.teams().find((t) => t._id === teamId);
+    return team ? team.name : 'Unknown Team';
+  }
+
+  /**
+   * Procedurally generate football stats based on player name and position
+   */
+  getPlayerStats(player: Player | null): { overall: number; stats: { label: string; value: number }[] } {
+    if (!player) return { overall: 75, stats: [] };
+    
+    // Hash function to get a deterministic value from player name
+    let hash = 0;
+    const name = player.name || '';
+    for (let i = 0; i < name.length; i++) {
+      hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const seed = Math.abs(hash);
+    
+    const getStatVal = (min: number, max: number, offset: number) => {
+      return min + ((seed + offset) % (max - min + 1));
+    };
+
+    const isGK = player.position?.toLowerCase().includes('goalkeeper') || 
+                 player.position?.toLowerCase().includes('goal keeper') ||
+                 player.position?.toLowerCase() === 'gk';
+                 
+    // Calculate rating based on base price, capped at 99
+    const basePrice = player.basePrice || 5;
+    const ratingOffset = Math.min(24, Math.floor((basePrice / 25) * 24));
+    const overall = 75 + ratingOffset;
+
+    if (isGK) {
+      return {
+        overall,
+        stats: [
+          { label: 'DIV', value: getStatVal(70, 99, 1) },
+          { label: 'REF', value: getStatVal(70, 99, 2) },
+          { label: 'HAN', value: getStatVal(65, 95, 3) },
+          { label: 'SPD', value: getStatVal(50, 85, 4) },
+          { label: 'KIC', value: getStatVal(60, 90, 5) },
+          { label: 'POS', value: getStatVal(70, 98, 6) }
+        ]
+      };
+    } else {
+      const posLower = player.position?.toLowerCase() || '';
+      const isDef = posLower.includes('defender') || posLower.includes('back') || posLower === 'def';
+      const isMid = posLower.includes('midfielder') || posLower === 'mid';
+      const isFwd = posLower.includes('forward') || posLower.includes('striker') || posLower === 'fwd' || posLower === 'att' || posLower.includes('winger');
+
+      // Tailor attributes based on position
+      const pac = getStatVal(isFwd ? 80 : isMid ? 70 : 60, 99, 1);
+      const sho = getStatVal(isFwd ? 80 : isMid ? 65 : 40, 99, 2);
+      const pas = getStatVal(isMid ? 80 : isFwd ? 65 : 55, 99, 3);
+      const dri = getStatVal(isMid || isFwd ? 80 : 60, 99, 4);
+      const def = getStatVal(isDef ? 80 : isMid ? 60 : 30, 99, 5);
+      const phy = getStatVal(isDef ? 80 : 65, 99, 6);
+
+      return {
+        overall,
+        stats: [
+          { label: 'PAC', value: pac },
+          { label: 'SHO', value: sho },
+          { label: 'PAS', value: pas },
+          { label: 'DRI', value: dri },
+          { label: 'DEF', value: def },
+          { label: 'PHY', value: phy }
+        ]
+      };
+    }
+  }
+
+  /**
+   * Deterministic jersey number based on player name length/characters
+   */
+  getJerseyNumber(playerName: string): number {
+    if (!playerName) return 10;
+    let sum = 0;
+    for (let i = 0; i < playerName.length; i++) {
+      sum += playerName.charCodeAt(i);
+    }
+    return (sum % 99) + 1;
   }
 }

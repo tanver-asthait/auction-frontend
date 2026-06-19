@@ -2,3 +2,25 @@
 <main class="main-content" [class.no-nav]="!shouldShowNavigation()">
   <router-outlet></router-outlet>
 </main>
+
+<!-- Floating Emojis Layer -->
+<div class="floating-emoji-layer">
+  <div *ngFor="let item of floatingReactions()" 
+       class="floating-emoji" 
+       [style.left.%]="item.left" 
+       [style.font-size.px]="item.size"
+       [style.animation-duration.s]="item.duration">
+    {{ item.emoji }}
+  </div>
+</div>
+
+<!-- Full-screen Gavel Hammer Overlay -->
+<div class="gavel-overlay" *ngIf="celebrationService.gavelActive()">
+  <div class="gavel-modal">
+    <div class="gavel-wrapper">
+      <div class="gavel-animation">🔨</div>
+    </div>
+    <div class="gavel-title">SOLD!</div>
+    <div class="gavel-details">{{ celebrationService.gavelText() }}</div>
+  </div>
+</div>

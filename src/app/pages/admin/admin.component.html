@@ -8,9 +8,18 @@
       </h1>
       <div class="header-info">
         <div class="current-time">{{ currentDateTime() }}</div>
-        <div class="connection-indicator" [class.connected]="wsService.connected()" [class.disconnected]="!wsService.connected()">
-          <span class="status-dot"></span>
-          {{ wsService.connected() ? 'LIVE' : 'OFFLINE' }}
+        <div style="display: flex; gap: 10px; align-items: center;">
+          <!-- Sound Toggle -->
+          <button class="sound-toggle-btn" 
+                  (click)="soundService.toggleSound()"
+                  [title]="soundService.soundEnabled() ? 'Mute Sounds' : 'Unmute Sounds'">
+            {{ soundService.soundEnabled() ? '🔊' : '🔇' }}
+          </button>
+          
+          <div class="connection-indicator" [class.connected]="wsService.connected()" [class.disconnected]="!wsService.connected()">
+            <span class="status-dot"></span>
+            {{ wsService.connected() ? 'LIVE' : 'OFFLINE' }}
+          </div>
         </div>
       </div>
     </div>

@@ -10,6 +10,7 @@ import {
   AuctionStartedEvent,
   AuctionEndedEvent,
   AuctionErrorEvent,
+  ReactionEvent,
 } from '../models/auction.model';
 
 @Injectable({
@@ -30,6 +31,7 @@ export class WebsocketService {
   private auctionStartedSubject = new Subject<AuctionStartedEvent>();
   private auctionEndedSubject = new Subject<AuctionEndedEvent>();
   private auctionErrorSubject = new Subject<AuctionErrorEvent>();
+  private reactionSubject = new Subject<ReactionEvent>();
 
   // Public observables
   state$ = this.stateSubject.asObservable();
@@ -39,6 +41,7 @@ export class WebsocketService {
   auctionStarted$ = this.auctionStartedSubject.asObservable();
   auctionEnded$ = this.auctionEndedSubject.asObservable();
   auctionError$ = this.auctionErrorSubject.asObservable();
+  reaction$ = this.reactionSubject.asObservable();
 
   constructor() {}
 
@@ -122,6 +125,10 @@ export class WebsocketService {
       console.error('Auction error:', data);
       this.auctionErrorSubject.next(data);
       this.error.set(data.message);
+    });
+
+    this.socket.on('reaction', (data: ReactionEvent) => {
+      this.reactionSubject.next(data);
     });
   }
 
@@ -282,5 +289,18 @@ export class WebsocketService {
 
     console.log('🔄 Requesting current auction state...');
     this.socket.emit('requestState', {});
+  }
+
+  /**
+   * Send an emoji reaction
+   * @param emoji - Emoji character to send
+   * @param senderName - Name of the sender (optional)
+   */
+  sendReaction(emoji: string, senderName?: string): void {
+    if (!this.socket?.connected) {
+      console.error('Cannot send reaction: WebSocket not connected');
+      return;
+    }
+    this.socket.emit('sendReaction', { emoji, senderName });
   }
 }

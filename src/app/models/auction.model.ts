@@ -59,3 +59,10 @@ export interface AuctionErrorEvent {
   message: string;
   code?: string;
 }
+
+export interface ReactionEvent {
+  emoji: string;
+  id: string;
+  senderName?: string;
+  timestamp: string;
+}
