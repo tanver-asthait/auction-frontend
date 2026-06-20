@@ -23,7 +23,7 @@ export class AdminComponent implements OnInit, OnDestroy {
   isAuthenticated = signal<boolean>(false);
   pinInput = signal<string>('');
   pinError = signal<boolean>(false);
-  private readonly ADMIN_PIN = '123456';
+  private readonly ADMIN_PIN = '201807';
 
   // Enhanced signals for reactive state
   currentPlayer = signal<Player | null>(null);
@@ -60,7 +60,7 @@ export class AdminComponent implements OnInit, OnDestroy {
     public playersService: PlayersService,
     public soundService: SoundService,
     public celebrationService: CelebrationService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     // Check local authentication cache
@@ -152,8 +152,7 @@ export class AdminComponent implements OnInit, OnDestroy {
     const soldSub = this.wsService.playerSold$.subscribe({
       next: (sold) => {
         console.log(
-          `Player sold: ${sold.playerName} to ${
-            sold.teamName || 'No one'
+          `Player sold: ${sold.playerName} to ${sold.teamName || 'No one'
           } for $${sold.finalPrice}`
         );
 
@@ -409,12 +408,12 @@ export class AdminComponent implements OnInit, OnDestroy {
   resetAllPlayers(): void {
     const confirmed = confirm(
       '🔄 Reset All Players to Pending?\n\n' +
-        'This will:\n' +
-        '• Set all players to PENDING status\n' +
-        '• Clear all team assignments\n' +
-        '• Reset all purchase prices\n' +
-        '• Allow them to be auctioned again\n\n' +
-        'Are you sure you want to proceed?'
+      'This will:\n' +
+      '• Set all players to PENDING status\n' +
+      '• Clear all team assignments\n' +
+      '• Reset all purchase prices\n' +
+      '• Allow them to be auctioned again\n\n' +
+      'Are you sure you want to proceed?'
     );
 
     if (!confirmed) {
@@ -460,10 +459,10 @@ export class AdminComponent implements OnInit, OnDestroy {
 
   enterDigit(digit: string): void {
     if (this.pinInput().length >= 6) return;
-    
+
     this.pinError.set(false);
     this.pinInput.update(val => val + digit);
-    
+
     // Check if PIN is complete (6 digits)
     if (this.pinInput().length === 6) {
       if (this.pinInput() === this.ADMIN_PIN) {
