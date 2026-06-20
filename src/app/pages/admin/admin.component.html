@@ -103,7 +103,7 @@
             </span>
           </div>
           <div class="price-info">
-            <div class="base-price">Base: {{ formatCurrency(currentPlayer()!.basePrice) }}</div>
+            <div class="base-price">Base: {{ currentPlayer()!.basePrice | indianCurrency }}</div>
           </div>
         </div>
       </div>
@@ -122,7 +122,7 @@
       </div>
       <div class="bidding-content">
         <div class="highest-bid">
-          <div class="bid-amount">{{ formatCurrency(highestBid()) }}</div>
+          <div class="bid-amount">{{ highestBid() | indianCurrency }}</div>
           <div class="bid-team">{{ highestBidder() }}</div>
         </div>
         <div class="bid-progress" *ngIf="currentPlayer()">
@@ -196,7 +196,7 @@
           <div class="team-info">
             <div class="team-name">{{ team.name }}</div>
             <div class="team-stats">
-              <span class="budget">Budget: {{ formatCurrency(team.budget) }}</span>
+              <span class="budget">Budget: {{ team.budget | indianCurrency }}</span>
               <span class="players-count">Players: {{ team.players.length || 0 }}</span>
             </div>
           </div>

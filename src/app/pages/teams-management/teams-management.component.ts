@@ -3,11 +3,12 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TeamsService } from '../../services/teams.service';
 import { Team, CreateTeamDto, UpdateTeamDto } from '../../models/team.model';
+import { IndianCurrencyPipe } from '../../pipes/indian-currency.pipe';
 
 @Component({
   selector: 'app-teams-management',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, IndianCurrencyPipe],
   templateUrl: './teams-management.component.html',
   styleUrl: './teams-management.component.scss',
 })

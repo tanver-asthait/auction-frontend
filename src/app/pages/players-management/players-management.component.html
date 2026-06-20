@@ -67,7 +67,7 @@
         </div>
 
         <div class="form-group">
-          <label for="basePrice">Base Price (in crores) *</label>
+          <label for="basePrice">Base Price *</label>
           <input
             type="number"
             id="basePrice"
@@ -164,7 +164,7 @@
                 </span>
               </div>
             </td>
-            <td class="price-cell">₹{{ player.basePrice }}cr</td>
+            <td class="price-cell">{{ player.basePrice | indianCurrency }}</td>
             <td class="status-cell">
               <span class="status-badge" [class]="getStatusBadgeClass(player.status)">
                 {{ player.status }}

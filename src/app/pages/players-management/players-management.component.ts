@@ -3,11 +3,12 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Player, CreatePlayerDto, UpdatePlayerDto, PlayerStatus } from '../../models/player.model';
 import { PlayersService } from '../../services/players.service';
+import { IndianCurrencyPipe } from '../../pipes/indian-currency.pipe';
 
 @Component({
   selector: 'app-players-management',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, IndianCurrencyPipe],
   templateUrl: './players-management.component.html',
   styleUrls: ['./players-management.component.scss']
 })

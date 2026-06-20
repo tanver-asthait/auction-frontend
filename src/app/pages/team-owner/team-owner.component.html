@@ -20,12 +20,12 @@
           <div class="team-details">
             <div class="budget-display">
               <span class="label">Available Budget:</span>
-              <span class="amount">${{ budget() }}</span>
+              <span class="amount">{{ budget() | indianCurrency }}</span>
             </div>
             @if (canBid()) {
               <div class="next-bid-info">
                 <span class="label">After Next Bid:</span>
-                <span class="amount">${{ remainingBudget() }}</span>
+                <span class="amount">{{ remainingBudget() | indianCurrency }}</span>
               </div>
             }
           </div>
@@ -94,7 +94,7 @@
                   </span>
                 </div>
                 <div class="price-info">
-                  <div class="base-price">Base: ${{ currentPlayer()!.basePrice }}</div>
+                  <div class="base-price">Base: {{ currentPlayer()!.basePrice | indianCurrency }}</div>
                   <div class="status">Status: {{ currentPlayer()!.status }}</div>
                 </div>
               </div>
@@ -116,7 +116,7 @@
             <div class="bid-info">
               <div class="highest-bid">
                 <span class="label">Highest Bid:</span>
-                <span class="amount">${{ highestBid() }}</span>
+                <span class="amount">{{ highestBid() | indianCurrency }}</span>
               </div>
               <div class="highest-bidder">
                 <span class="label">Highest Bidder:</span>
@@ -133,7 +133,7 @@
               @if (canBid()) {
                 <div class="next-bid-info">
                   <div class="bid-increment-display">
-                    Base Increment: ${{ bidIncrement() }}
+                    Base Increment: {{ bidIncrement() | indianCurrency }}
                   </div>
                 </div>
                 
@@ -142,7 +142,7 @@
                   @for (multiplier of incrementMultipliers; track multiplier) {
                     <div class="bid-option">
                       <div class="bid-amount">
-                        ${{ getBidAmountForMultiplier(multiplier) }}
+                        {{ getBidAmountForMultiplier(multiplier) | indianCurrency }}
                       </div>
                       <button 
                         class="bid-btn"
@@ -152,7 +152,7 @@
                         (click)="placeBid(multiplier)">
                         <span class="btn-icon">🔥</span>
                         <span class="increment-label">+{{ multiplier }}x</span>
-                        <span class="increment-amount">${{ bidIncrement() * multiplier }}</span>
+                        <span class="increment-amount">{{ bidIncrement() * multiplier | indianCurrency }}</span>
                       </button>
                     </div>
                   }
@@ -161,7 +161,7 @@
                 <!-- Remaining Budget Info -->
                 <div class="budget-preview">
                   <span class="budget-label">After minimum bid:</span>
-                  <span class="budget-amount">${{ budget() - nextBidAmount() }}</span>
+                  <span class="budget-amount">{{ budget() - nextBidAmount() | indianCurrency }}</span>
                 </div>
               } @else {
                 <div class="bid-disabled-info">
@@ -198,12 +198,12 @@
               <li><strong>Current Player ID:</strong> {{ currentPlayer()?._id || 'N/A' }}</li>
               <li><strong>Current Player Name:</strong> {{ currentPlayer()?.name || 'N/A' }}</li>
             }
-            <li><strong>Highest Bid:</strong> ${{ highestBid() }}</li>
+            <li><strong>Highest Bid:</strong> {{ highestBid() | indianCurrency }}</li>
             <li><strong>Highest Bidder:</strong> {{ highestBidder() }}</li>
             <li><strong>Is Highest Bidder:</strong> {{ isHighestBidder() ? 'Yes' : 'No' }}</li>
             <li><strong>Can Bid:</strong> {{ canBid() ? 'Yes' : 'No' }}</li>
-            <li><strong>Budget:</strong> ${{ budget() }}</li>
-            <li><strong>Next Bid Amount:</strong> ${{ nextBidAmount() }}</li>
+            <li><strong>Budget:</strong> {{ budget() | indianCurrency }}</li>
+            <li><strong>Next Bid Amount:</strong> {{ nextBidAmount() | indianCurrency }}</li>
           </ul>
           
           <h4>Troubleshooting:</h4>
@@ -295,10 +295,10 @@
                 
                 <div class="table-cell price-cell">
                   <div class="price-display">
-                    <span class="price-amount">${{ player.finalPrice || player.basePrice }}</span>
+                    <span class="price-amount">{{ (player.finalPrice || player.basePrice) | indianCurrency }}</span>
                     @if (player.finalPrice && player.finalPrice > player.basePrice) {
                       <span class="price-increase">
-                        +${{ player.finalPrice - player.basePrice }}
+                        +{{ (player.finalPrice - player.basePrice) | indianCurrency }}
                       </span>
                     }
                   </div>

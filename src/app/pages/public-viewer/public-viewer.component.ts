@@ -8,11 +8,12 @@ import { Team } from '../../models/team.model';
 import { SoundService } from '../../services/sound.service';
 import { CelebrationService } from '../../services/celebration.service';
 import { PlayersService } from '../../services/players.service';
+import { IndianCurrencyPipe } from '../../pipes/indian-currency.pipe';
 
 @Component({
   selector: 'app-public-viewer',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, IndianCurrencyPipe],
   templateUrl: './public-viewer.component.html',
   styleUrl: './public-viewer.component.scss',
 })

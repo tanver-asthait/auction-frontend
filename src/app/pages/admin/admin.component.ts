@@ -9,11 +9,12 @@ import { Team } from '../../models/team.model';
 import { environment } from '../../../environments/environment';
 import { SoundService } from '../../services/sound.service';
 import { CelebrationService } from '../../services/celebration.service';
+import { IndianCurrencyPipe } from '../../pipes/indian-currency.pipe';
 
 @Component({
   selector: 'app-admin',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, IndianCurrencyPipe],
   templateUrl: './admin.component.html',
   styleUrl: './admin.component.scss',
 })

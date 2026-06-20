@@ -62,11 +62,11 @@
               }
             </div>
 
-            <div class="signing-details">
-              <div class="player-name">{{ player.name }}</div>
-              <div class="signing-meta">
-                <span class="price">${{ player.finalPrice }}M</span>
-                <span class="to-text">to</span>
+              <div class="signing-details">
+                <div class="player-name">{{ player.name }}</div>
+                <div class="signing-meta">
+                  <span class="price">{{ player.finalPrice | indianCurrency }}</span>
+                  <span class="to-text">to</span>
                 <span class="team-name">{{ getTeamName(player.boughtBy) }}</span>
               </div>
             </div>
@@ -159,7 +159,7 @@
                 <!-- Player Info Block -->
                 <div class="card-details">
                   <h3 class="player-name-fut">{{ currentPlayer()!.name }}</h3>
-                  <div class="player-base-price">Base Value: ${{ currentPlayer()!.basePrice }}M</div>
+                  <div class="player-base-price">Base Value: {{ currentPlayer()!.basePrice | indianCurrency }}</div>
                 </div>
 
                 <!-- FUT Stats Attributes Grid -->
@@ -177,7 +177,7 @@
               
               <div class="hud-item lead-bid-box">
                 <div class="hud-label">CURRENT LEADING BID</div>
-                <div class="hud-value-glowing">${{ highestBid() }}M</div>
+                <div class="hud-value-glowing">{{ highestBid() | indianCurrency }}</div>
                 
                 <div class="hud-bidder">
                   @if (highestBidder() !== 'None') {
@@ -268,7 +268,7 @@
                     <span class="value" 
                           [class.budget-healthy]="team.budget >= 50" 
                           [class.budget-warning]="team.budget < 50 && team.budget >= 20" 
-                          [class.budget-critical]="team.budget < 20">${{ team.budget }}M</span>
+                          [class.budget-critical]="team.budget < 20">{{ team.budget | indianCurrency }}</span>
                   </div>
                   <div class="budget-progress-track">
                     <div class="budget-progress-fill" 

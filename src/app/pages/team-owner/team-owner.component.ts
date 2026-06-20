@@ -17,11 +17,12 @@ import { Player } from '../../models/player.model';
 import { Team } from '../../models/team.model';
 import { SoundService } from '../../services/sound.service';
 import { CelebrationService } from '../../services/celebration.service';
+import { IndianCurrencyPipe } from '../../pipes/indian-currency.pipe';
 
 @Component({
   selector: 'app-team-owner',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, IndianCurrencyPipe],
   templateUrl: './team-owner.component.html',
   styleUrl: './team-owner.component.scss',
 })
