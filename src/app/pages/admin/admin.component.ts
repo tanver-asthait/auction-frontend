@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { WebsocketService } from '../../services/websocket.service';
@@ -19,6 +19,12 @@ import { IndianCurrencyPipe } from '../../pipes/indian-currency.pipe';
   styleUrl: './admin.component.scss',
 })
 export class AdminComponent implements OnInit, OnDestroy {
+  // Authentication state
+  isAuthenticated = signal<boolean>(false);
+  pinInput = signal<string>('');
+  pinError = signal<boolean>(false);
+  private readonly ADMIN_PIN = '123456';
+
   // Enhanced signals for reactive state
   currentPlayer = signal<Player | null>(null);
   highestBid = signal<number>(0);
@@ -57,6 +63,10 @@ export class AdminComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    // Check local authentication cache
+    const isAuth = sessionStorage.getItem('admin_authenticated') === 'true';
+    this.isAuthenticated.set(isAuth);
+
     // Connect to WebSocket
     this.wsService.connect();
 
@@ -432,5 +442,49 @@ export class AdminComponent implements OnInit, OnDestroy {
         alert('❌ Failed to reset players. Please try again.');
       },
     });
+  }
+
+  @HostListener('window:keydown', ['$event'])
+  handleKeyboardEvent(event: KeyboardEvent) {
+    if (this.isAuthenticated()) return;
+
+    const key = event.key;
+    if (key >= '0' && key <= '9') {
+      this.enterDigit(key);
+    } else if (key === 'Backspace') {
+      this.deleteLastDigit();
+    } else if (key === 'Escape') {
+      this.clearPin();
+    }
+  }
+
+  enterDigit(digit: string): void {
+    if (this.pinInput().length >= 6) return;
+    
+    this.pinError.set(false);
+    this.pinInput.update(val => val + digit);
+    
+    // Check if PIN is complete (6 digits)
+    if (this.pinInput().length === 6) {
+      if (this.pinInput() === this.ADMIN_PIN) {
+        this.isAuthenticated.set(true);
+        sessionStorage.setItem('admin_authenticated', 'true');
+        this.soundService.playChime();
+      } else {
+        this.pinError.set(true);
+        this.soundService.playError();
+        setTimeout(() => this.clearPin(), 800);
+      }
+    }
+  }
+
+  deleteLastDigit(): void {
+    this.pinError.set(false);
+    this.pinInput.update(val => val.slice(0, -1));
+  }
+
+  clearPin(): void {
+    this.pinInput.set('');
+    this.pinError.set(false);
   }
 }

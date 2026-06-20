@@ -1,127 +1,170 @@
-<div class="admin-dashboard">
-  <!-- Header -->
-  <header class="dashboard-header">
-    <div class="header-content">
-      <h1 class="dashboard-title">
-        <span class="icon">⚡</span>
-        Auction Control Center
-      </h1>
-      <div class="header-info">
-        <div class="current-time">{{ currentDateTime() }}</div>
-        <div style="display: flex; gap: 10px; align-items: center;">
-          <!-- Sound Toggle -->
-          <button class="sound-toggle-btn" 
-                  (click)="soundService.toggleSound()"
-                  [title]="soundService.soundEnabled() ? 'Mute Sounds' : 'Unmute Sounds'">
-            {{ soundService.soundEnabled() ? '🔊' : '🔇' }}
-          </button>
-          
-          <div class="connection-indicator" [class.connected]="wsService.connected()" [class.disconnected]="!wsService.connected()">
-            <span class="status-dot"></span>
-            {{ wsService.connected() ? 'LIVE' : 'OFFLINE' }}
-          </div>
-        </div>
+@if (!isAuthenticated()) {
+  <div class="lockscreen-container">
+    <div class="lockscreen-card">
+      <div class="lockscreen-header">
+        <span class="lock-icon">🔒</span>
+        <h2>Admin Authentication</h2>
+        <p>Enter 6-digit PIN to access control center</p>
       </div>
-    </div>
-  </header>
+      
+      <!-- PIN Dot Indicators -->
+      <div class="pin-indicators">
+        <span class="indicator-dot" [class.active]="pinInput().length > 0"></span>
+        <span class="indicator-dot" [class.active]="pinInput().length > 1"></span>
+        <span class="indicator-dot" [class.active]="pinInput().length > 2"></span>
+        <span class="indicator-dot" [class.active]="pinInput().length > 3"></span>
+        <span class="indicator-dot" [class.active]="pinInput().length > 4"></span>
+        <span class="indicator-dot" [class.active]="pinInput().length > 5"></span>
+      </div>
 
-    <!-- Control Panel -->
-  <div class="control-panel">
-    <h2>🎮 Auction Controls</h2>
-    <div class="control-buttons">
-      <button class="control-btn start-btn" 
-              (click)="startAuction()"
-              [disabled]="!wsService.connected() || isRunning()"
-              title="Start the auction">
-        <span class="btn-icon">🚀</span>
-        Start Auction
-      </button>
+      <!-- Error Message -->
+      @if (pinError()) {
+        <div class="pin-error-msg">
+          ❌ Invalid PIN. Please try again.
+        </div>
+      }
 
-      <button class="control-btn sell-btn"
-              (click)="sellPlayer()"
-              [disabled]="!wsService.connected() || !isRunning()"
-              title="Sell current player">
-        <span class="btn-icon">🔨</span>
-        Sell Player
-      </button>
-
-      <button class="control-btn next-btn"
-              (click)="nextPlayer()"
-              [disabled]="!wsService.connected()"
-              title="Move to next player">
-        <span class="btn-icon">⏭️</span>
-        Next Player
-      </button>
-
-      <button class="control-btn reset-btn"
-              (click)="resetAllPlayers()"
-              [disabled]="!wsService.connected() || playersService.loading()"
-              title="Reset all players to pending status">
-        <span class="btn-icon">🔄</span>
-        {{ playersService.loading() ? 'Resetting...' : 'Reset Players' }}
-      </button>
+      <!-- Keypad Grid -->
+      <div class="keypad-grid">
+        <button class="keypad-btn" (click)="enterDigit('1')">1</button>
+        <button class="keypad-btn" (click)="enterDigit('2')">2</button>
+        <button class="keypad-btn" (click)="enterDigit('3')">3</button>
+        <button class="keypad-btn" (click)="enterDigit('4')">4</button>
+        <button class="keypad-btn" (click)="enterDigit('5')">5</button>
+        <button class="keypad-btn" (click)="enterDigit('6')">6</button>
+        <button class="keypad-btn" (click)="enterDigit('7')">7</button>
+        <button class="keypad-btn" (click)="enterDigit('8')">8</button>
+        <button class="keypad-btn" (click)="enterDigit('9')">9</button>
+        <button class="keypad-btn clear-btn" (click)="clearPin()">Clear</button>
+        <button class="keypad-btn" (click)="enterDigit('0')">0</button>
+        <button class="keypad-btn delete-btn" (click)="deleteLastDigit()">⌫</button>
+      </div>
     </div>
   </div>
-
-  <!-- Main Dashboard Grid -->
-  <div class="dashboard-grid">
-    
-    <!-- Timer & Status Card -->
-    <div class="dashboard-card timer-card" [class.running]="isRunning()" [class.pulse]="timerPulse()">
-      <div class="card-header">
-        <h2>🕐 Auction Timer</h2>
-        <div class="status-badge" [class.active]="isRunning()">
-          {{ isRunning() ? 'LIVE' : 'PAUSED' }}
-        </div>
-      </div>
-      <div class="timer-display" [style.color]="getTimerColor()">
-        {{ getTimerDisplay() }}
-      </div>
-      <div class="timer-info">
-        <div *ngIf="auctionStartTime()" class="auction-duration">
-          Duration: {{ getAuctionDuration() }}
-        </div>
-      </div>
-    </div>
-
-    <!-- Current Player Card -->
-    <div class="dashboard-card current-player-card">
-      <div class="card-header">
-        <h2>🎯 Current Player</h2>
-      </div>
-      <div *ngIf="currentPlayer(); else noPlayerTemplate" class="player-info">
-        <div class="player-image" *ngIf="currentPlayer()?.image">
-          <img [src]="currentPlayer()!.image" [alt]="currentPlayer()!.name" />
-        </div>
-        <div class="player-details">
-          <h3 class="player-name">{{ currentPlayer()!.name }}</h3>
-          <div class="player-positions">
-            <span *ngFor="let pos of getPositionArray(currentPlayer()!.position)" 
-                  class="position-badge" 
-                  [class]="'position-' + pos.toLowerCase().replace(' ', '-')">
-              {{ pos }}
-            </span>
-          </div>
-          <div class="price-info">
-            <div class="base-price">Base: {{ currentPlayer()!.basePrice | indianCurrency }}</div>
+} @else {
+  <div class="admin-dashboard">
+    <!-- Header -->
+    <header class="dashboard-header">
+      <div class="header-content">
+        <h1 class="dashboard-title">
+          <span class="icon">⚡</span>
+          Auction Control Center
+        </h1>
+        <div class="header-info">
+          <div class="current-time">{{ currentDateTime() }}</div>
+          <div style="display: flex; gap: 10px; align-items: center;">
+            <!-- Sound Toggle -->
+            <button class="sound-toggle-btn" 
+                    (click)="soundService.toggleSound()"
+                    [title]="soundService.soundEnabled() ? 'Mute Sounds' : 'Unmute Sounds'">
+              {{ soundService.soundEnabled() ? '🔊' : '🔇' }}
+            </button>
+            
+            <div class="connection-indicator" [class.connected]="wsService.connected()" [class.disconnected]="!wsService.connected()">
+              <span class="status-dot"></span>
+              {{ wsService.connected() ? 'LIVE' : 'OFFLINE' }}
+            </div>
           </div>
         </div>
       </div>
-      <ng-template #noPlayerTemplate>
-        <div class="no-player">
-          <div class="no-player-icon">🏃‍♂️</div>
-          <p>No player in auction</p>
-        </div>
-      </ng-template>
+    </header>
+
+      <!-- Control Panel -->
+    <div class="control-panel">
+      <h2>🎮 Auction Controls</h2>
+      <div class="control-buttons">
+        <button class="control-btn start-btn" 
+                (click)="startAuction()"
+                [disabled]="!wsService.connected() || isRunning()"
+                title="Start the auction">
+          <span class="btn-icon">🚀</span>
+          Start Auction
+        </button>
+
+        <button class="control-btn sell-btn"
+                (click)="sellPlayer()"
+                [disabled]="!wsService.connected() || !isRunning()"
+                title="Sell current player">
+          <span class="btn-icon">🔨</span>
+          Sell Player
+        </button>
+
+        <button class="control-btn next-btn"
+                (click)="nextPlayer()"
+                [disabled]="!wsService.connected()"
+                title="Move to next player">
+          <span class="btn-icon">⏭️</span>
+          Next Player
+        </button>
+
+        <button class="control-btn reset-btn"
+                (click)="resetAllPlayers()"
+                [disabled]="!wsService.connected() || playersService.loading()"
+                title="Reset all players to pending status">
+          <span class="btn-icon">🔄</span>
+          {{ playersService.loading() ? 'Resetting...' : 'Reset Players' }}
+        </button>
+      </div>
     </div>
 
-    <!-- Bidding Information -->
-    <div class="dashboard-card bidding-card" [class.new-bid]="newBidAnimation()">
-      <div class="card-header">
-        <h2>💰 Current Bidding</h2>
+    <!-- Main Dashboard Grid -->
+    <div class="dashboard-grid">
+      
+      <!-- Timer & Status Card -->
+      <div class="dashboard-card timer-card" [class.running]="isRunning()" [class.pulse]="timerPulse()">
+        <div class="card-header">
+          <h2>🕐 Auction Timer</h2>
+          <div class="status-badge" [class.active]="isRunning()">
+            {{ isRunning() ? 'LIVE' : 'PAUSED' }}
+          </div>
+        </div>
+        <div class="timer-display" [style.color]="getTimerColor()">
+          {{ getTimerDisplay() }}
+        </div>
+        <div class="timer-info">
+          <div *ngIf="auctionStartTime()" class="auction-duration">
+            Duration: {{ getAuctionDuration() }}
+          </div>
+        </div>
       </div>
-      <div class="bidding-content">
-        <div class="highest-bid">
+
+      <!-- Current Player Card -->
+      <div class="dashboard-card current-player-card">
+        <div class="card-header">
+          <h2>🎯 Current Player</h2>
+        </div>
+        <div *ngIf="currentPlayer(); else noPlayerTemplate" class="player-info">
+          <div class="player-image" *ngIf="currentPlayer()?.image">
+            <img [src]="currentPlayer()!.image" [alt]="currentPlayer()!.name" />
+          </div>
+          <div class="player-details">
+            <h3 class="player-name">{{ currentPlayer()!.name }}</h3>
+            <div class="player-positions">
+              <span *ngFor="let pos of getPositionArray(currentPlayer()!.position)" 
+                    class="position-badge" 
+                    [class]="'position-' + pos.toLowerCase().replace(' ', '-')">
+                {{ pos }}
+              </span>
+            </div>
+            <div class="price-info">
+              <div class="base-price">Base: {{ currentPlayer()!.basePrice | indianCurrency }}</div>
+            </div>
+          </div>
+        </div>
+        <ng-template #noPlayerTemplate>
+          <div class="no-player">
+            <div class="no-player-icon">🏃‍♂️</div>
+            <p>No player in auction</p>
+          </div>
+        </ng-template>
+      </div>
+
+      <!-- Bidding Information -->
+      <div class="dashboard-card bidding-card" [class.new-bid]="newBidAnimation()">
+        <div class="card-header">
+          <h2>💰 Current Bidding</h2>
+        </div>
+        <div class="bidding-content">
           <div class="bid-amount">{{ highestBid() | indianCurrency }}</div>
           <div class="bid-team">{{ highestBidder() }}</div>
         </div>
@@ -136,86 +179,86 @@
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Statistics Card -->
-    <div class="dashboard-card stats-card">
-      <div class="card-header">
-        <h2>📊 Auction Stats</h2>
+      <!-- Statistics Card -->
+      <div class="dashboard-card stats-card">
+        <div class="card-header">
+          <h2>📊 Auction Stats</h2>
+        </div>
+        <div class="stats-grid">
+          <div class="stat-item">
+            <div class="stat-value">{{ totalPlayers() }}</div>
+            <div class="stat-label">Total Players</div>
+          </div>
+          <div class="stat-item sold">
+            <div class="stat-value">{{ soldPlayers() }}</div>
+            <div class="stat-label">Sold</div>
+          </div>
+          <div class="stat-item remaining">
+            <div class="stat-value">{{ remainingPlayers() }}</div>
+            <div class="stat-label">Remaining</div>
+          </div>
+          <div class="stat-item revenue">
+            <div class="stat-value">{{ formatCurrency(totalRevenue()) }}</div>
+            <div class="stat-label">Total Revenue</div>
+          </div>
+        </div>
+        <div class="progress-indicator">
+          <div class="progress-bar-full">
+            <div class="progress-fill-full" [style.width.%]="getProgressPercentage()"></div>
+          </div>
+          <div class="progress-label">{{ Math.round(getProgressPercentage()) }}% Complete</div>
+        </div>
       </div>
-      <div class="stats-grid">
-        <div class="stat-item">
-          <div class="stat-value">{{ totalPlayers() }}</div>
-          <div class="stat-label">Total Players</div>
-        </div>
-        <div class="stat-item sold">
-          <div class="stat-value">{{ soldPlayers() }}</div>
-          <div class="stat-label">Sold</div>
-        </div>
-        <div class="stat-item remaining">
-          <div class="stat-value">{{ remainingPlayers() }}</div>
-          <div class="stat-label">Remaining</div>
-        </div>
-        <div class="stat-item revenue">
-          <div class="stat-value">{{ formatCurrency(totalRevenue()) }}</div>
-          <div class="stat-label">Total Revenue</div>
-        </div>
-      </div>
-      <div class="progress-indicator">
-        <div class="progress-bar-full">
-          <div class="progress-fill-full" [style.width.%]="getProgressPercentage()"></div>
-        </div>
-        <div class="progress-label">{{ Math.round(getProgressPercentage()) }}% Complete</div>
-      </div>
-    </div>
 
-    <!-- Recent Bids -->
-    <div class="dashboard-card recent-bids-card">
-      <div class="card-header">
-        <h2>🔥 Recent Bids</h2>
-      </div>
-      <div class="bids-list">
-        <div *ngFor="let bid of recentBids(); let i = index" class="bid-item" [class]="'bid-' + i">
-          <div class="bid-team">{{ bid.teamName }}</div>
-          <div class="bid-amount">{{ formatCurrency(bid.bidAmount) }}</div>
-          <div class="bid-time">{{ bid.timestamp | date:'HH:mm:ss' }}</div>
+      <!-- Recent Bids -->
+      <div class="dashboard-card recent-bids-card">
+        <div class="card-header">
+          <h2>🔥 Recent Bids</h2>
         </div>
-        <div *ngIf="recentBids().length === 0" class="no-bids">
-          <span>🤐 No bids yet</span>
+        <div class="bids-list">
+          <div *ngFor="let bid of recentBids(); let i = index" class="bid-item" [class]="'bid-' + i">
+            <div class="bid-team">{{ bid.teamName }}</div>
+            <div class="bid-amount">{{ formatCurrency(bid.bidAmount) }}</div>
+            <div class="bid-time">{{ bid.timestamp | date:'HH:mm:ss' }}</div>
+          </div>
+          <div *ngIf="recentBids().length === 0" class="no-bids">
+            <span>🤐 No bids yet</span>
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- Teams Overview -->
-    <div class="dashboard-card teams-card">
-      <div class="card-header">
-        <h2>🏆 Teams</h2>
-      </div>
-      <div class="teams-list">
-        <div *ngFor="let team of teams()" class="team-item">
-          <div class="team-info">
-            <div class="team-name">{{ team.name }}</div>
-            <div class="team-stats">
-              <span class="budget">Budget: {{ team.budget | indianCurrency }}</span>
-              <span class="players-count">Players: {{ team.players.length || 0 }}</span>
+      <!-- Teams Overview -->
+      <div class="dashboard-card teams-card">
+        <div class="card-header">
+          <h2>🏆 Teams</h2>
+        </div>
+        <div class="teams-list">
+          <div *ngFor="let team of teams()" class="team-item">
+            <div class="team-info">
+              <div class="team-name">{{ team.name }}</div>
+              <div class="team-stats">
+                <span class="budget">Budget: {{ team.budget | indianCurrency }}</span>
+                <span class="players-count">Players: {{ team.players.length || 0 }}</span>
+              </div>
             </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- Last Sold Info Banner -->
-  <div *ngIf="lastSoldInfo()" class="sold-banner">
-    <div class="sold-content">
-      <span class="sold-icon">🎉</span>
-      <span class="sold-text">{{ lastSoldInfo() }}</span>
+    <!-- Last Sold Info Banner -->
+    <div *ngIf="lastSoldInfo()" class="sold-banner">
+      <div class="sold-content">
+        <span class="sold-icon">🎉</span>
+        <span class="sold-text">{{ lastSoldInfo() }}</span>
+      </div>
+    </div>
+
+    <!-- Error Display -->
+    <div *ngIf="wsService.error()" class="error-banner">
+      <span class="error-icon">⚠️</span>
+      <span class="error-text">{{ wsService.error() }}</span>
     </div>
   </div>
-
-  <!-- Error Display -->
-  <div *ngIf="wsService.error()" class="error-banner">
-    <span class="error-icon">⚠️</span>
-    <span class="error-text">{{ wsService.error() }}</span>
-  </div>
-</div>
+}

@@ -395,3 +395,147 @@
     50% { box-shadow: 0 8px 32px rgba($warning-color, 0.4), 0 0 20px rgba($warning-color, 0.3); }
   }
 }
+
+// Lockscreen styling
+.lockscreen-container {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  @include gradient-background;
+  color: $text-light;
+  padding: $spacing-md;
+
+  .lockscreen-card {
+    @include glass-card($blur: 20px, $opacity: 0.15);
+    width: 100%;
+    max-width: 400px;
+    padding: 40px;
+    border-radius: 20px;
+    text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+    animation: fadeIn 0.4s ease;
+
+    .lockscreen-header {
+      margin-bottom: 30px;
+
+      .lock-icon {
+        font-size: 3rem;
+        display: block;
+        margin-bottom: 15px;
+        animation: pulse 2s infinite;
+      }
+
+      h2 {
+        font-size: 1.8rem;
+        font-weight: 700;
+        margin-bottom: 8px;
+        color: #ffffff;
+      }
+
+      p {
+        font-size: 0.95rem;
+        color: $text-muted;
+      }
+    }
+
+    .pin-indicators {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      margin-bottom: 25px;
+
+      .indicator-dot {
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        border: 2px solid rgba(255, 255, 255, 0.4);
+        transition: all 0.2s ease;
+
+        &.active {
+          background-color: #3b82f6;
+          border-color: #3b82f6;
+          box-shadow: 0 0 10px rgba(59, 130, 246, 0.8);
+          transform: scale(1.15);
+        }
+      }
+    }
+
+    .pin-error-msg {
+      color: #ef4444;
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin-bottom: 20px;
+      animation: shake 0.3s ease-in-out;
+    }
+
+    .keypad-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 15px;
+
+      .keypad-btn {
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+        width: 65px;
+        height: 65px;
+        margin: 0 auto;
+        font-size: 1.4rem;
+        font-weight: 600;
+        color: #ffffff;
+        cursor: pointer;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        transition: all 0.2s ease;
+        user-select: none;
+
+        &:hover {
+          background: rgba(255, 255, 255, 0.2);
+          border-color: rgba(255, 255, 255, 0.3);
+          transform: scale(1.05);
+        }
+
+        &:active {
+          transform: scale(0.95);
+          background: rgba(255, 255, 255, 0.3);
+        }
+
+        &.clear-btn {
+          font-size: 0.9rem;
+          background: rgba(239, 68, 68, 0.15);
+          border-color: rgba(239, 68, 68, 0.2);
+          color: #f87171;
+          border-radius: 12px;
+          width: 100%;
+          height: 65px;
+
+          &:hover {
+            background: rgba(239, 68, 68, 0.3);
+            border-color: rgba(239, 68, 68, 0.4);
+          }
+        }
+
+        &.delete-btn {
+          font-size: 1.2rem;
+          background: rgba(255, 255, 255, 0.05);
+          border-radius: 12px;
+          width: 100%;
+          height: 65px;
+
+          &:hover {
+            background: rgba(255, 255, 255, 0.15);
+          }
+        }
+      }
+    }
+  }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-8px); }
+  75% { transform: translateX(8px); }
+}
